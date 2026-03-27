@@ -1,23 +1,41 @@
-import logo from './logo.svg';
+import React, { useState } from 'react';
 import './App.css';
+import Navbar from './components/navbar';
+import Home from './pages/Home';
+import History from './pages/History';
+import About from './pages/About';
+import Profile from './pages/Profile';
+import Chatbot from './components/Chatbot'; 
 
 function App() {
+  const [page, setPage] = useState('Home');
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // Ganti ke false untuk tes proteksi
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Navbar 
+        setPage={setPage} 
+        isLoggedIn={isLoggedIn} 
+        setIsLoggedIn={setIsLoggedIn} 
+      />
+      
+      <div className="content">
+        {/* Halaman Home & About bisa dibuka siapa saja */}
+        {page === 'Home' && <Home isLoggedIn={isLoggedIn} />}
+        {page === 'About' && <About />}
+
+        {/* PROTEKSI: Halaman History hanya untuk yang login */}
+        {page === 'History' && (
+          isLoggedIn ? <History /> : <Home isLoggedIn={isLoggedIn} />
+        )}
+
+        {/* PROTEKSI: Halaman Profile hanya untuk yang login */}
+        {page === 'Profile' && (
+          isLoggedIn ? <Profile /> : <Home isLoggedIn={isLoggedIn} />
+        )}
+      </div>
+
+      <Chatbot />
     </div>
   );
 }
