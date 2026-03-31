@@ -1,0 +1,89 @@
+.register-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #BEDBFF, #BEDBFF);
+}
+
+/* Card */
+.register-box {
+  background: #ffffff;
+  padding: 40px 30px;
+  border-radius: 20px;
+  width: 360px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  animation: slideUp 0.5s ease;
+}
+
+/* Judul */
+.register-box h2 {
+  margin-bottom: 20px;
+  color: #1e3a8a;
+}
+
+/*  Input */
+.register-box input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  outline: none;
+  transition: 0.3s;
+  font-size: 14px;
+}
+
+/* focus effect */
+.register-box input:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 6px rgba(79, 70, 229, 0.5);
+}
+
+/*  Button */
+.register-box button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  border: none;
+  border-radius: 10px;
+  background: #4f46e5;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+/* hover */
+.register-box button:hover {
+  background: #4338ca;
+}
+
+/* text bawah */
+.register-box p {
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.register-box a {
+  color: #4f46e5;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.register-box a:hover {
+  text-decoration: underline;
+}
+
+/*  animasi */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

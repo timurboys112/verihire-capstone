@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from "react-router-dom";
 
-const Home = ({ isLoggedIn, lang }) => {
+const Home = ({ isLoggedIn, language }) => {
   const [scanType, setScanType] = useState('Scan');
+  const [input, setInput] = useState("");
+  const navigate = useNavigate();
 
   // Kamus Bahasa
   const content = {
@@ -11,7 +14,11 @@ const Home = ({ isLoggedIn, lang }) => {
       placeholder: "Paste lowongan kerja di sini...",
       btnText: "Scan Now",
       limit: "hanya 5 scan tersisa!",
-      stats: ["Lowongan Palsu Terdeteksi", "Risiko Tinggi Diblokir", "Sumber Terbanyak"]
+      stats: ["Lowongan Palsu Terdeteksi", "Risiko Tinggi Diblokir", "Sumber Terbanyak"],
+      alertEmpty: "Masukkan data dulu!",
+      alertDone: "Scan selesai!",
+      suspicious: "⚠️ Mencurigakan",
+      safe: "✅ Aman"
     },
     EN: {
       title: "Check Job Vacancy, Avoid Scams.",
@@ -19,11 +26,55 @@ const Home = ({ isLoggedIn, lang }) => {
       placeholder: "Paste job vacancy here...",
       btnText: "Scan Now",
       limit: "only 5 scan left!",
-      stats: ["Fake Jobs Detected", "High Risk Blocked", "Top Source Detected"]
+      stats: ["Fake Jobs Detected", "High Risk Blocked", "Top Source Detected"],
+      alertEmpty: "Please enter data first!",
+      alertDone: "Scan complete!",
+      suspicious: "⚠️ Suspicious",
+      safe: "✅ Safe"
     }
   };
 
-  const t = content[lang || 'ID'];
+  const t = content[language || 'ID'];
+
+  // LOGIKA SCAN
+  const handleScan = () => {
+    if (!input) {
+      alert(t.alertEmpty);
+      return;
+    }
+
+    let result = "";
+    const text = input.toLowerCase();
+
+    if (
+      text.includes("transfer") ||
+      text.includes("bayar") ||
+      text.includes("admin fee") ||
+      text.includes("biaya")
+    ) {
+      result = t.suspicious;
+    } else {
+      result = t.safe;
+    }
+
+    const newData = {
+      id: Date.now(),
+      text: input,
+      result: result,
+      type: scanType,
+      date: new Date().toLocaleString(),
+    };
+
+    const oldData = JSON.parse(localStorage.getItem("history")) || [];
+    const updatedData = [newData, ...oldData];
+
+    localStorage.setItem("history", JSON.stringify(updatedData));
+
+    setInput("");
+    alert(t.alertDone);
+
+    navigate("/history");
+  };
 
   return (
     <div className="container">
@@ -32,7 +83,6 @@ const Home = ({ isLoggedIn, lang }) => {
         <p>{t.desc}</p>
       </div>
 
-      {/* Input Group Terbaru (image_2363f9.png) */}
       <div className="main-search-wrapper">
         <div className="search-box-container">
           <select 
@@ -47,9 +97,15 @@ const Home = ({ isLoggedIn, lang }) => {
             <option value="Text">Text</option>
           </select>
 
-          <input type="text" placeholder={t.placeholder} className="scan-input" />
+          <input 
+            type="text" 
+            placeholder={t.placeholder} 
+            className="scan-input"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+          />
 
-          <button className="btn-scan-now">
+          <button className="btn-scan-now" onClick={handleScan}>
             🔍 {t.btnText}
           </button>
         </div>
