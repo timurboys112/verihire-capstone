@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import logoImg from '../assets/logo.png'; 
 
-const Navbar = ({ isLoggedIn, setIsLoggedIn, language, setLanguage }) => {
+const Navbar = ({ user, setUser, language, setLanguage }) => {
   const location = useLocation();
 
   const t = {
@@ -11,8 +11,8 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn, language, setLanguage }) => {
   }[language || 'ID'];
 
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    setIsLoggedIn(false);
+    localStorage.removeItem("user"); // ✅ hapus user
+    setUser(null); // ✅ reset state
     window.location.href = "/";
   };
 
@@ -20,12 +20,10 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn, language, setLanguage }) => {
     <nav className="main-nav-final">
       <div className="container nav-content-final">
         
-        {/* LOGO KIRI */}
         <Link to="/" className="nav-brand-final">
           <img src={logoImg} alt="VeriHire" className="nav-logo-img-final" />
         </Link>
 
-        {/* GRUP KANAN (Menu & Auth) */}
         <div className="nav-right-group-final">
           
           <ul className="nav-menu-final">
@@ -40,7 +38,7 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn, language, setLanguage }) => {
           </div>
 
           <div className="nav-auth-final">
-            {isLoggedIn ? (
+            {user ? ( // ✅ ganti ini
               <div className="auth-flex-final">
                 <Link to="/profile" className="btn-blue-final">{t.profile}</Link>
                 <button onClick={handleLogout} className="btn-red-final">{t.logout}</button>

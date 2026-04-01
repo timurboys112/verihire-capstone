@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import content from "../content"; //  IMPORT KAMUS
+import content from "../content";
 import "./login.css";
 
-function Login({ setIsLoggedIn, language }) { //  TAMBAH language
+function Login({ setUser, language }) { // ✅ pakai setUser
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const text = content[language].login; //  AMBIL TEKS SESUAI BAHASA
+  const text = content[language].login;
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -25,15 +25,14 @@ function Login({ setIsLoggedIn, language }) { //  TAMBAH language
     );
 
     if (user) {
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("currentUser", email);
+      // ✅ SIMPAN USER LANGSUNG (bukan cuma email)
+      localStorage.setItem("user", JSON.stringify(user));
 
-      setIsLoggedIn(true);
+      // ✅ set ke state global
+      setUser(user);
+
       navigate("/home");
     } else {
-      localStorage.removeItem("isLoggedIn");
-      setIsLoggedIn(false);
-
       alert(
         language === "ID"
           ? "Email atau password salah!"
@@ -47,7 +46,7 @@ function Login({ setIsLoggedIn, language }) { //  TAMBAH language
       <div className="login-box">
         <h2>{text.title}</h2>
 
-        <form onSubmit={handleLogin}>
+        <form>
           <input
             type="email"
             placeholder={text.email}
@@ -60,7 +59,9 @@ function Login({ setIsLoggedIn, language }) { //  TAMBAH language
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          <button type="submit">{text.button}</button>
+          <button type="button" onClick={handleLogin}>
+  {text.button}
+</button>
         </form>
 
         <p>

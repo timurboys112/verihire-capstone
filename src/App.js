@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 
 // Import Components & Pages
-import Navbar from './components/navbar'; // Pastikan huruf besar kecilnya sesuai nama file
+import Navbar from './components/navbar';
 import Home from './pages/Home';
 import About from './pages/About';
 import Scan from './pages/Scan'; 
@@ -14,20 +14,20 @@ import Chatbot from './components/Chatbot';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  
-  // Ambil bahasa terakhir dari storage, kalau gak ada default ke 'ID'
+  const [user, setUser] = useState(null);
+
+  // Ambil bahasa dari localStorage
   const [language, setLanguage] = useState(localStorage.getItem("appLang") || 'ID');
 
+  // ✅ FIX useEffect
   useEffect(() => {
-    // Cek status login saat pertama kali buka web
-    const status = localStorage.getItem("isLoggedIn");
-    if (status === "true") {
-      setIsLoggedIn(true);
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
     }
   }, []);
 
-  // Fungsi tambahan buat simpan pilihan bahasa
+  // Fungsi set bahasa
   const handleSetLanguage = (lang) => {
     setLanguage(lang);
     localStorage.setItem("appLang", lang);
@@ -36,37 +36,42 @@ function App() {
   return (
     <BrowserRouter>
       <div className="App">
-        {/* NAVBAR: Mengatur login dan switch bahasa */}
+
+        {/* ✅ Navbar pakai user */}
         <Navbar 
-          isLoggedIn={isLoggedIn} 
-          setIsLoggedIn={setIsLoggedIn}
+          user={user} 
+          setUser={setUser}
           language={language}
           setLanguage={handleSetLanguage} 
         />
 
         <div className="content">
           <Routes>
+
             {/* Halaman Utama */}
-            <Route path="/" element={<Home isLoggedIn={isLoggedIn} language={language} />} />
-            <Route path="/home" element={<Home isLoggedIn={isLoggedIn} language={language} />} />
+            <Route path="/" element={<Home user={user} language={language} />} />
+            <Route path="/home" element={<Home user={user} language={language} />} />
             
-            {/* Halaman Informasi & Fitur */}
+            {/* Halaman Lain */}
             <Route path="/about" element={<About language={language} />} />
             <Route path="/scan" element={<Scan language={language} />} />
             
-            {/* Autentikasi */}
-            <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} language={language} />} />
+            {/* Auth */}
+            <Route 
+              path="/login" 
+              element={<Login setUser={setUser} language={language} />} 
+            />
             <Route path="/register" element={<Register language={language} />} />
 
-            {/* Proteksi Halaman Profil: Harus login dulu */}
+            {/* ✅ Proteksi pakai user */}
             <Route 
               path="/profile" 
-              element={isLoggedIn ? <Profile language={language} /> : <Navigate to="/login" />} 
+              element={user ? <Profile user={user} language={language} /> : <Navigate to="/login" />} 
             />
+
           </Routes>
         </div>
 
-        {/* CHATBOT: Sekarang sudah terima props language */}
         <Chatbot language={language} />
       </div>
     </BrowserRouter>

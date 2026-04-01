@@ -13,22 +13,18 @@ function Register() {
   const handleRegister = (e) => {
     e.preventDefault();
 
-    // validasi kosong
     if (!username || !email || !password || !confirmPassword) {
       alert("Isi semua field!");
       return;
     }
 
-    // validasi password sama
     if (password !== confirmPassword) {
       alert("Password tidak sama!");
       return;
     }
 
-    // ambil data user lama
     const users = JSON.parse(localStorage.getItem("users")) || [];
 
-    // cek email sudah ada
     const isExist = users.find((user) => user.email === email);
 
     if (isExist) {
@@ -36,11 +32,16 @@ function Register() {
       return;
     }
 
-    // tambah user baru
-    const newUser = { username, email, password };
+    // ✅ Tambah ID unik
+    const newUser = {
+      id: Date.now(), // simple unique id
+      username,
+      email,
+      password
+    };
+
     users.push(newUser);
 
-    // simpan ke localStorage
     localStorage.setItem("users", JSON.stringify(users));
 
     alert("Berhasil daftar!");
@@ -55,28 +56,32 @@ function Register() {
 
         <form onSubmit={handleRegister}>
           <input
-            type="text"
-            placeholder="Username"
-            onChange={(e) => setUsername(e.target.value)}
-          />
+  type="text"
+  placeholder="Username"
+  value={username}
+  onChange={(e) => setUsername(e.target.value)}
+/>
 
-          <input
-            type="email"
-            placeholder="Email"
-            onChange={(e) => setEmail(e.target.value)}
-          />
+<input
+  type="email"
+  placeholder="Email"
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+/>
 
-          <input
-            type="password"
-            placeholder="Password"
-            onChange={(e) => setPassword(e.target.value)}
-          />
+<input
+  type="password"
+  placeholder="Password"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+/>
 
-          <input
-            type="password"
-            placeholder="Konfirmasi Password"
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
+<input
+  type="password"
+  placeholder="Konfirmasi Password"
+  value={confirmPassword}
+  onChange={(e) => setConfirmPassword(e.target.value)}
+/>
 
           <button type="submit">Daftar</button>
         </form>
