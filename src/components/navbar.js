@@ -1,98 +1,56 @@
 import React from 'react';
-import { useNavigate } from "react-router-dom";
-import logo from '../assets/logo.png';
+import { Link, useLocation } from 'react-router-dom';
+import logoImg from '../assets/logo.png'; 
 
 const Navbar = ({ isLoggedIn, setIsLoggedIn, language, setLanguage }) => {
-  const navigate = useNavigate();
+  const location = useLocation();
+
+  const t = {
+    ID: { home: "Beranda", scan: "Scan", about: "Tentang", login: "Masuk", profile: "Profil", logout: "Keluar" },
+    EN: { home: "Home", scan: "Scan", about: "About", login: "Login", profile: "Profile", logout: "Logout" }
+  }[language || 'ID'];
+
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    setIsLoggedIn(false);
+    window.location.href = "/";
+  };
 
   return (
-    <nav className="navbar">
-      
-      {/* LOGO */}
-      <div 
-        className="logo" 
-        onClick={() => navigate('/')} 
-        style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}
-      >
-        <img src={logo} alt="logo" style={{ height: '70px' }} />
-      </div>
-      
-      {/* MENU */}
-      <ul className="nav-links">
-        <li onClick={() => navigate('/')}>
-          {language === 'ID' ? 'Beranda' : 'Home'}
-        </li>
+    <nav className="main-nav-final">
+      <div className="container nav-content-final">
         
-        {isLoggedIn ? (
-          <>
-            <li onClick={() => navigate('/history')}>
-              {language === 'ID' ? 'Riwayat' : 'History'}
-            </li>
-            <li onClick={() => navigate('/about')}>
-              {language === 'ID' ? 'Tentang' : 'About'}
-            </li>
-            <li onClick={() => navigate('/profile')}>
-              {language === 'ID' ? 'Profil' : 'Profile'}
-            </li>
-          </>
-        ) : (
-          <li onClick={() => navigate('/about')}>
-            {language === 'ID' ? 'Tentang' : 'About'}
-          </li>
-        )}
-      </ul>
+        {/* LOGO KIRI */}
+        <Link to="/" className="nav-brand-final">
+          <img src={logoImg} alt="VeriHire" className="nav-logo-img-final" />
+        </Link>
 
-      {/* RIGHT SIDE */}
-      <div className="nav-right">
+        {/* GRUP KANAN (Menu & Auth) */}
+        <div className="nav-right-group-final">
+          
+          <ul className="nav-menu-final">
+            <li className={location.pathname === '/' ? 'active' : ''}><Link to="/">{t.home}</Link></li>
+            <li className={location.pathname === '/scan' ? 'active' : ''}><Link to="/scan">{t.scan}</Link></li>
+            <li className={location.pathname === '/about' ? 'active' : ''}><Link to="/about">{t.about}</Link></li>
+          </ul>
 
-        {/* SWITCH LANGUAGE */}
-        <div className="lang">
-          <span 
-            className={`lang-box ${language === 'EN' ? 'active' : ''}`}
-            onClick={() => setLanguage('EN')}
-            style={{ cursor: 'pointer' }}
-          >
-            EN
-          </span>
-
-          <span 
-            className={`lang-box ${language === 'ID' ? 'active' : ''}`}
-            onClick={() => setLanguage('ID')}
-            style={{ cursor: 'pointer' }}
-          >
-            ID
-          </span>
-        </div>
-        
-        {/* AUTH */}
-        {isLoggedIn ? (
-          <div className="auth-buttons">
-            <button 
-              className="btn-profile" 
-              onClick={() => navigate('/profile')}
-            >
-              {language === 'ID' ? 'Profil' : 'Profile'}
-            </button>
-
-            <button 
-              className="btn-logout" 
-              onClick={() => {
-                setIsLoggedIn(false);
-                navigate('/');
-              }}
-            >
-              {language === 'ID' ? 'Keluar' : 'Logout'}
-            </button>
+          <div className="nav-lang-final">
+            <button className={language === 'EN' ? 'active' : ''} onClick={() => setLanguage('EN')}>EN</button>
+            <button className={language === 'ID' ? 'active' : ''} onClick={() => setLanguage('ID')}>ID</button>
           </div>
-        ) : (
-          <button 
-            className="btn-login" 
-            onClick={() => navigate('/login')}
-          >
-            {language === 'ID' ? 'Masuk' : 'Login'}
-          </button>
-        )}
 
+          <div className="nav-auth-final">
+            {isLoggedIn ? (
+              <div className="auth-flex-final">
+                <Link to="/profile" className="btn-blue-final">{t.profile}</Link>
+                <button onClick={handleLogout} className="btn-red-final">{t.logout}</button>
+              </div>
+            ) : (
+              <Link to="/login" className="btn-blue-final">{t.login}</Link>
+            )}
+          </div>
+
+        </div>
       </div>
     </nav>
   );

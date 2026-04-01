@@ -1,130 +1,68 @@
 import React from 'react';
 
 const Profile = ({ language }) => {
-
-  const user = {
-    name: "Anindya Bulan",
-    email: "anindya.bulan@example.com",
-    memberSince: {
-      ID: "Januari 2026",
-      EN: "January 2026"
-    },
-    totalScans: 12
-  };
-
-  const scanReports = [
-    { id: 1, name: 'PT.txt', type: 'Text' },
-    { id: 2, name: 'PT.img', type: 'Image' },
-    { id: 3, name: 'PT.link', type: 'Link' },
+  const history = [
+    { no: 1, nama: "PT.txt", tipe: "Text", status: "Masih Diproses" },
+    { no: 2, nama: "PT.img", tipe: "Image", status: "Selesai" },
+    { no: 3, nama: "PT.link", tipe: "Link", status: "Selesai" },
   ];
 
-  // KAMUS
-  const content = {
-    ID: {
-      title: "Profil Saya",
-      memberSince: "Bergabung Sejak:",
-      totalScans: "Total Scan:",
-      edit: "Edit Profil",
-      password: "Ganti Password",
-      statusProcess: "Status : Masih Diproses",
-      statusDone: "Status : Selesai",
-      table: ["No Scan", "Nama Scan", "Tipe Scan"]
-    },
-    EN: {
-      title: "My Profile",
-      memberSince: "Member Since:",
-      totalScans: "Total Scans:",
-      edit: "Edit Profile",
-      password: "Change Password",
-      statusProcess: "Status : Still Reporting",
-      statusDone: "Status : Done Report",
-      table: ["Scan Number", "Scan Name", "Scan Type"]
-    }
-  };
-
-  const t = content[language || 'ID'];
-
   return (
-    <div className="container profile-page">
-      <h2>{t.title}</h2>
-      <hr />
-      
-      <div className="profile-card">
-        <div className="profile-info">
-          <div className="profile-avatar">👤</div>
-          <div className="profile-details">
-            <h3>{user.name}</h3>
-            <p className="email">{user.email}</p>
-            <p><strong>{t.memberSince}</strong> {user.memberSince[language || 'ID']}</p>
-            <p><strong>{t.totalScans}</strong> {user.totalScans}</p>
+    <div className="profile-wrapper-final">
+      <div className="container">
+        {/* KARTU PROFIL UTAMA */}
+        <section className="user-card-final">
+          <div className="avatar-box-final">👤</div>
+          <div className="user-info-final">
+            <h1>Anindya Bulan</h1>
+            <p className="email-text">anindya.bulan@example.com</p>
+            <div className="stats-row-final">
+              <span><strong>Bergabung:</strong> Januari 2026</span>
+              <span className="dot-separator">•</span>
+              <span><strong>Total Scan:</strong> 3</span>
+            </div>
+            <div className="action-buttons-final">
+              <button className="btn-secondary-final">Edit Profil</button>
+              <button className="btn-secondary-final">Ganti Password</button>
+            </div>
           </div>
-        </div>
-        
-        <div className="profile-actions">
-          <button className="btn-edit">{t.edit}</button>
-          <button className="btn-password">{t.password}</button>
-        </div>
-      </div>
+        </section>
 
-      {/* REPORT */}
-      <div className="reports-wrapper">
-        
-        {/* PROCESS */}
-        <div className="report-box">
-          <div className="report-header">
-            <span>{t.statusProcess}</span>
-            <span className="refresh-icon">🔄</span>
+        {/* TABEL RIWAYAT */}
+        <section className="history-card-final">
+          <div className="history-header-final">
+            <h2>Riwayat Pencarian</h2>
+            <p>Kelola data hasil deteksi AI kamu di sini.</p>
           </div>
-
-          <table className="report-table">
-            <thead>
-              <tr>
-                <th>{t.table[0]}</th>
-                <th>{t.table[1]}</th>
-                <th>{t.table[2]}</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {scanReports.map((scan) => (
-                <tr key={scan.id}>
-                  <td>{scan.id}</td>
-                  <td>{scan.name}</td>
-                  <td>{scan.type}</td>
+          <div className="table-container-final">
+            <table className="table-final">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Nama Scan</th>
+                  <th>Tipe</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* DONE */}
-        <div className="report-box">
-          <div className="report-header">
-            <span>{t.statusDone}</span>
-            <span className="refresh-icon">🔄</span>
+              </thead>
+              <tbody>
+                {history.map((item, i) => (
+                  <tr key={i}>
+                    <td>{item.no}</td>
+                    <td className="bold-text">{item.nama}</td>
+                    <td><span className="type-badge-final">{item.tipe}</span></td>
+                    <td>
+                      <span className={`status-badge-final ${item.status === 'Selesai' ? 'done' : 'process'}`}>
+                        {item.status}
+                      </span>
+                    </td>
+                    <td><button className="btn-delete-final">Hapus</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-
-          <table className="report-table">
-            <thead>
-              <tr>
-                <th>{t.table[0]}</th>
-                <th>{t.table[1]}</th>
-                <th>{t.table[2]}</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {scanReports.map((scan) => (
-                <tr key={scan.id}>
-                  <td>{scan.id}</td>
-                  <td>{scan.name}</td>
-                  <td>{scan.type}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
+        </section>
       </div>
     </div>
   );

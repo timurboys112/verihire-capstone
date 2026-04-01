@@ -1,26 +1,39 @@
 import React from 'react';
 
 const About = ({ language }) => {
-
   const content = {
     ID: {
-      title: "Tentang Kami",
-      desc1: "Kami menyediakan layanan untuk mendeteksi lowongan kerja palsu dengan bantuan AI.",
-      desc2: "Kami bertujuan membantu pengguna menghindari penipuan dalam pencarian kerja.",
+      badge: "🛡️ Tentang VeriHire",
+      title: "Melindungi Pencari Kerja dari",
+      fraud: "Penipuan",
       stats: [
-        "Lowongan Palsu Terdeteksi",
-        "Risiko Tinggi Diblokir",
-        "Sumber Terbanyak"
+        { val: "50K+", lab: "Pekerjaan Discan" },
+        { val: "99.2%", lab: "Tingkat Akurasi" },
+        { val: "15K+", lab: "Pengguna Aktif" },
+        { val: "24/7", lab: "Perlindungan" }
+      ],
+      points: [
+        "Janji gaji yang tidak realistis",
+        "Metode kontak yang mencurigakan",
+        "Tekanan bahasa yang mendesak",
+        "Informasi perusahaan yang hilang"
       ]
     },
     EN: {
-      title: "About Us",
-      desc1: "We provide a service to detect fake job vacancies using AI.",
-      desc2: "Our goal is to help users avoid scams in job searching.",
+      badge: "🛡️ About VeriHire",
+      title: "Protecting Job Seekers from",
+      fraud: "Fraud",
       stats: [
-        "Fake Jobs Detected",
-        "High Risk Blocked",
-        "Top Source Detected"
+        { val: "50K+", lab: "Jobs Scanned" },
+        { val: "99.2%", lab: "Accuracy Rate" },
+        { val: "15K+", lab: "Active Users" },
+        { val: "24/7", lab: "Protection" }
+      ],
+      points: [
+        "Unrealistic salary promises",
+        "Suspicious contact methods",
+        "Urgent language pressure",
+        "Missing company info"
       ]
     }
   };
@@ -28,33 +41,26 @@ const About = ({ language }) => {
   const t = content[language || 'ID'];
 
   return (
-    <div className="container about-page">
-      <div className="about-header">
-        <h2>{t.title}</h2>
-
-        <div className="about-description">
-          <p>{t.desc1}</p>
-          <p>{t.desc2}</p>
-        </div>
-      </div>
-
-      <div className="stats-container">
-        <div className="stat-card">
-          <span className="icon text-red">⚠️</span>
-          <h3>1200 +</h3>
-          <p>{t.stats[0]}</p>
+    <div className="about-page-v2">
+      <div className="container">
+        <span className="badge-ui">{t.badge}</span>
+        <h1 className="hero-title">{t.title} <span className="blue-text">{t.fraud}</span></h1>
+        
+        <div className="about-stats-grid">
+          {t.stats.map((s, i) => (
+            <div key={i} className="about-stat-card">
+              <h3>{s.val}</h3>
+              <p>{s.lab}</p>
+            </div>
+          ))}
         </div>
 
-        <div className="stat-card">
-          <span className="icon text-yellow">📈</span>
-          <h3>80%</h3>
-          <p>{t.stats[1]}</p>
-        </div>
-
-        <div className="stat-card">
-          <span className="icon">✔️</span>
-          <h3>Telegram</h3>
-          <p>{t.stats[2]}</p>
+        <div className="detect-grid-v2">
+          {t.points.map((p, i) => (
+            <div key={i} className="detect-item">
+              <span>●</span> {p}
+            </div>
+          ))}
         </div>
       </div>
     </div>

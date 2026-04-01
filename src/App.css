@@ -1,70 +1,155 @@
-/* --- MOBILE RESPONSIVE --- */
+/* ============================================================
+   1. GLOBAL & FONTS
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: #F8FAFF; color: #1E293B; overflow-x: hidden; width: 100%; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+.blue-text { color: #1A66FF; }
+.badge-ui { background: #Eef2ff; color: #1a66ff; padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; display: inline-block; margin-bottom: 15px; }
 
-@media (max-width: 768px) {
-  .navbar {
-    flex-direction: column;
-    padding: 15px 5%;
-    gap: 15px;
-    align-items: center;
-    text-align: center;
-    position: sticky; /* Tetap sticky di mobile */
-  }
+/* ============================================================
+   2. NAVBAR FINAL
+   ============================================================ */
+.main-nav-final { background: white; border-bottom: 1px solid #f1f5f9; padding: 15px 0; position: sticky; top: 0; z-index: 1000; }
+.nav-content-final { display: flex; justify-content: space-between; align-items: center; }
+.nav-brand-final { display: flex; align-items: center; min-width: 150px; }
+.nav-logo-img-final { height: 80px !important; width: auto; display: block; object-fit: contain; }
+.nav-right-group-final { display: flex; align-items: center; gap: 30px; }
+.nav-menu-final { display: flex; list-style: none; gap: 25px; margin: 0; padding: 0; }
+.nav-menu-final a { text-decoration: none; color: #64748B; font-weight: 500; font-size: 0.95rem; transition: 0.3s; }
+.nav-menu-final li.active a { color: #1A66FF; font-weight: 600; }
+.nav-menu-final li.active::after { content: ""; position: absolute; bottom: -21px; left: 0; width: 100%; height: 3px; background: #1A66FF; border-radius: 10px 10px 0 0; }
+.nav-lang-final { display: flex; background: #f1f5f9; padding: 4px; border-radius: 100px; }
+.nav-lang-final button { border: none; padding: 5px 12px; border-radius: 100px; cursor: pointer; background: transparent; color: #64748B; font-weight: bold; font-size: 0.75rem; transition: 0.3s; }
+.nav-lang-final button.active { background: #1A66FF; color: white; }
+.auth-flex-final { display: flex; gap: 10px; align-items: center; }
+.btn-blue-final { background: #1A66FF; color: white !important; text-decoration: none; padding: 10px 22px; border-radius: 100px; font-weight: 600; font-size: 0.9rem; display: inline-block; border: none; }
+.btn-red-final { background: #fff1f1; color: #FF4747 !important; border: 1px solid #fed7d7; padding: 10px 22px; border-radius: 100px; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
 
-  .nav-links {
-    justify-content: center;
-    width: 100%;
-    padding: 0;
-    margin: 5px 0;
-    gap: 15px;
-    font-size: 14px;
-  }
+/* ============================================================
+   3. PAGES (HOME & SCAN)
+   ============================================================ */
+.hero-v2 { padding: 80px 0; background: white; text-align: center; }
+.hero-title { font-size: 3.5rem; font-weight: 800; margin: 20px 0; line-height: 1.1; color: #1E293B; }
+.search-bar-v2 { max-width: 750px; margin: 0 auto; display: flex; align-items: center; padding: 8px 8px 8px 25px; background: white; border-radius: 100px; box-shadow: 0 15px 35px rgba(26, 102, 255, 0.1); border: 1px solid #E2E8F0; }
+.input-group { flex: 1; display: flex; align-items: center; }
+.input-group input { border: none; outline: none; width: 100%; font-size: 1rem; margin-left: 10px; }
+.btn-main-blue { background: #1A66FF; color: white; border: none; padding: 14px 30px; border-radius: 100px; font-weight: bold; cursor: pointer; }
 
-  .nav-right {
-    display: flex;
-    flex-direction: column; 
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-  }
+.stats-grid-v2 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-top: 60px; }
+.stat-card-v2 { background: white; padding: 25px; border-radius: 20px; display: flex; align-items: center; gap: 20px; text-align: left; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #F1F5F9; }
 
-  .lang {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-  }
+.why-us { padding: 100px 0; text-align: center; background: #F8FAFF; }
+.features-grid-v2 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-top: 50px; }
+.feature-box-new { background: white; padding: 40px 30px; border-radius: 24px; border: 1px solid #edf2f7; box-shadow: 0 10px 30px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: center; }
 
-  .auth-buttons {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    gap: 8px;
-  }
+/* SCAN PAGE */
+.scan-ui-v2 { padding: 60px 0; text-align: center; }
+.scan-input-card { background: white; max-width: 800px; margin: 40px auto; padding: 40px; border-radius: 24px; border: 1px solid #E2E8F0; box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: left; }
+.scan-input-card textarea { width: 100%; height: 200px; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; font-size: 1rem; margin-bottom: 20px; outline: none; background: #F8FAFF; resize: none; }
+.examples-grid-v2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; max-width: 900px; margin: 30px auto; }
+.example-box { background: white; padding: 30px; border-radius: 20px; border: 1px solid #edf2f7; text-align: left; display: flex; flex-direction: column; justify-content: space-between; }
+.btn-use-example { background: #F1F5F9; color: #1E293B; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 15px; width: fit-content; transition: 0.3s; }
+.btn-use-example:hover { background: #1A66FF; color: white; }
 
-  .search-box-container {
-    flex-direction: column;
-    width: 100%;
-  }
+/* ============================================================
+   4. ABOUT PAGE (FORCE GRID LAYOUT) 🛡️
+   ============================================================ */
+.about-page-v2 { padding: 80px 0; text-align: center; background: white; }
 
-  .scan-type-select, .scan-input, .btn-scan-now {
-    width: 100%; 
-    border-radius: 8px;
-  }
-
-  .main-search-wrapper {
-    margin: 20px 10px;
-    padding: 10px;
-  }
-
-  .stats-container {
-    grid-template-columns: 1fr;
-    padding: 0 20px;
-  }
-
-  .history-page { overflow-x: auto; }
-  .history-table { min-width: 600px; }
-
-  .profile-card { flex-direction: column; text-align: center; }
-  .reports-wrapper { flex-direction: column; }
-  .report-box { width: 100%; min-width: unset; }
-  .chatbot-window { width: 280px; right: -10px; }
+.about-stats-grid { 
+  display: grid !important; 
+  grid-template-columns: repeat(4, 1fr) !important; 
+  gap: 20px; 
+  margin: 50px auto; 
+  max-width: 1100px;
 }
+
+.about-stat-card { 
+  background: #F8FAFF; 
+  padding: 30px; 
+  border-radius: 20px; 
+  border: 1px solid #E2E8F0; 
+  text-align: center;
+}
+
+.about-stat-card h3 { font-size: 2rem; color: #1A66FF; margin-bottom: 5px; }
+
+.detect-grid-v2 { 
+  display: grid !important; 
+  grid-template-columns: 1fr 1fr !important; 
+  gap: 15px; 
+  max-width: 800px; 
+  margin: 40px auto; 
+}
+
+.detect-item { 
+  background: white; 
+  padding: 18px 25px; 
+  border-radius: 12px; 
+  border: 1px solid #E2E8F0; 
+  text-align: left; 
+  display: flex; 
+  align-items: center; 
+  gap: 12px;
+}
+
+.detect-item span { color: #1A66FF; font-size: 1.2rem; }
+
+/* ============================================================
+   4. CHATBOT FIX (ULTIMATE STABLE)
+   ============================================================ */
+.chatbot-wrapper { position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; }
+.chatbot-button { width: 60px; height: 60px; background: #1A66FF; color: white; border-radius: 50%; border: none; font-size: 1.8rem; cursor: pointer; box-shadow: 0 8px 25px rgba(26, 102, 255, 0.4); display: flex; align-items: center; justify-content: center; order: 2; }
+.chatbot-window { width: 350px; height: 500px; background: white; border-radius: 24px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #f1f5f9; margin-bottom: 15px; order: 1; animation: chatbotPop 0.3s ease-out; }
+.chatbot-header { background: #1A66FF; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
+.chatbot-messages { flex: 1; padding: 20px; background: #f8faff; overflow-y: auto; text-align: left; }
+.chatbot-input { display: flex; padding: 15px; background: white; border-top: 1px solid #f1f5f9; gap: 10px; }
+.chatbot-input input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 10px; outline: none; }
+
+/* ============================================================
+   5. PROFILE PAGE - DASHBOARD STYLE
+   ============================================================ */
+.profile-wrapper-final { padding: 80px 0; min-height: 80vh; background: #F8FAFF; }
+.user-card-final { background: white; padding: 40px; border-radius: 24px; display: flex; align-items: center; gap: 35px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #edf2f7; margin-bottom: 40px; text-align: left; }
+.avatar-box-final { font-size: 3rem; background: #EEF2FF; width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.user-info-final h1 { font-size: 2.2rem; font-weight: 800; color: #1E293B; }
+.stats-row-final { display: flex; gap: 15px; margin: 15px 0 25px; font-size: 0.95rem; }
+.action-buttons-final { display: flex; gap: 12px; }
+.btn-secondary-final { background: white; border: 1px solid #E2E8F0; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: 0.3s; }
+.btn-secondary-final:hover { background: #F8FAFF; border-color: #1A66FF; color: #1A66FF; }
+
+.history-card-final { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid #edf2f7; text-align: left; }
+.table-final { width: 100%; border-collapse: collapse; margin-top: 20px; }
+.table-final th { text-align: left; padding: 15px; background: #F8FAFF; color: #64748B; font-size: 0.85rem; text-transform: uppercase; }
+.table-final td { padding: 20px 15px; border-bottom: 1px solid #F1F5F9; }
+.status-badge-final { padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+.status-badge-final.done { background: #DCFCE7; color: #15803D; }
+.status-badge-final.process { background: #FEF9C3; color: #854D0E; }
+.btn-delete-final { background: #FFF1F1; color: #FF4747; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.8rem; }
+
+.cta-banner { background: #1A66FF; color: white; padding: 100px 0; text-align: center; width: 100%; margin-top: 50px; }
+.btn-white-pill { background: white; color: #1A66FF; border: none; padding: 16px 45px; border-radius: 100px; font-weight: bold; margin-top: 30px; cursor: pointer; }
+
+/* ============================================================
+   6. GLOBAL MOBILE RESPONSIVE (PALING BAWAH!) 📱
+   ============================================================ */
+@media (max-width: 768px) {
+  .nav-content-final { flex-direction: column; gap: 15px; }
+  .nav-right-group-final { flex-direction: column; width: 100%; }
+  .nav-menu-final { gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .auth-flex-final { width: 100%; justify-content: center; }
+
+  .hero-title { font-size: 2rem !important; line-height: 1.2; padding: 0 10px; }
+  .search-bar-v2 { flex-direction: column; border-radius: 20px; padding: 15px; max-width: 90% !important; gap: 10px; }
+  .btn-main-blue { width: 100%; }
+
+  .stats-grid-v2, .features-grid-v2, .examples-grid-v2 { grid-template-columns: 1fr !important; padding: 0 15px; }
+  .user-card-final { flex-direction: column; text-align: center; }
+  .stats-row-final { flex-direction: column; align-items: center; }
+  .action-buttons-final { flex-direction: column; width: 100%; }
+  .chatbot-window { width: calc(100vw - 40px); height: 60vh; }
+}
+
+@keyframes chatbotPop { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
