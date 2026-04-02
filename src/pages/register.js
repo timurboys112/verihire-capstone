@@ -2,93 +2,115 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./register.css";
 
-function Register() {
+// IMPORT ICON
+import { FiEye, FiEyeOff, FiLock, FiMail, FiUser } from "react-icons/fi";
+
+// IMPORT GAMBAR DARI ASSETS
+import logoImg from "../assets/logo.png";
+import illuImg from "../assets/illustration-login.png";
+
+function Register({ language }) {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
+  const [showPass, setShowPass] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  
   const navigate = useNavigate();
 
   const handleRegister = (e) => {
     e.preventDefault();
-
     if (!username || !email || !password || !confirmPassword) {
-      alert("Isi semua field!");
+      alert(language === "ID" ? "Isi semua field!" : "Fill all fields!");
       return;
     }
-
     if (password !== confirmPassword) {
-      alert("Password tidak sama!");
+      alert(language === "ID" ? "Password tidak sama!" : "Passwords do not match!");
       return;
     }
 
     const users = JSON.parse(localStorage.getItem("users")) || [];
-
-    const isExist = users.find((user) => user.email === email);
-
-    if (isExist) {
-      alert("Email sudah terdaftar!");
+    if (users.find((user) => user.email === email)) {
+      alert(language === "ID" ? "Email sudah terdaftar!" : "Email already registered!");
       return;
     }
 
-    // ✅ Tambah ID unik
-    const newUser = {
-      id: Date.now(), // simple unique id
-      username,
-      email,
-      password
-    };
-
+    const newUser = { id: Date.now(), username, email, password, avatar: "" };
     users.push(newUser);
-
     localStorage.setItem("users", JSON.stringify(users));
-
-    alert("Berhasil daftar!");
-
+    alert(language === "ID" ? "Berhasil daftar!" : "Registration successful!");
     navigate("/login");
   };
 
   return (
-    <div className="register-container">
-      <div className="register-box">
-        <h2>Daftar</h2>
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-left">
+          <div className="auth-logo">
+            <img src={logoImg} alt="VeriHire" />
+          </div>
+          
+          <h2>{language === "ID" ? "Daftar Akun" : "Create Account"}</h2>
+          
+          <form onSubmit={handleRegister}>
+            <div className="auth-group">
+              <label>Username</label>
+              <div className="input-with-icon">
+                <FiUser className="input-icon-v" />
+                <input type="text" placeholder="Username" onChange={(e) => setUsername(e.target.value)} />
+              </div>
+            </div>
 
-        <form onSubmit={handleRegister}>
-          <input
-  type="text"
-  placeholder="Username"
-  value={username}
-  onChange={(e) => setUsername(e.target.value)}
-/>
+            <div className="auth-group">
+              <label>Email</label>
+              <div className="input-with-icon">
+                <FiMail className="input-icon-v" />
+                <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
+              </div>
+            </div>
 
-<input
-  type="email"
-  placeholder="Email"
-  value={email}
-  onChange={(e) => setEmail(e.target.value)}
-/>
+            <div className="auth-group">
+              <label>Password</label>
+              <div className="input-with-icon">
+                <FiLock className="input-icon-v" />
+                <input 
+                  type={showPass ? "text" : "password"} 
+                  placeholder="Password" 
+                  onChange={(e) => setPassword(e.target.value)} 
+                />
+                <button type="button" className="eye-icon-v" onClick={() => setShowPass(!showPass)}>
+                  {showPass ? <FiEyeOff /> : <FiEye />}
+                </button>
+              </div>
+            </div>
 
-<input
-  type="password"
-  placeholder="Password"
-  value={password}
-  onChange={(e) => setPassword(e.target.value)}
-/>
+            <div className="auth-group">
+              <label>{language === "ID" ? "Konfirmasi Password" : "Confirm Password"}</label>
+              <div className="input-with-icon">
+                <FiLock className="input-icon-v" />
+                <input 
+                  type={showConfirm ? "text" : "password"} 
+                  placeholder="Confirm Password" 
+                  onChange={(e) => setConfirmPassword(e.target.value)} 
+                />
+                <button type="button" className="eye-icon-v" onClick={() => setShowConfirm(!showConfirm)}>
+                  {showConfirm ? <FiEyeOff /> : <FiEye />}
+                </button>
+              </div>
+            </div>
 
-<input
-  type="password"
-  placeholder="Konfirmasi Password"
-  value={confirmPassword}
-  onChange={(e) => setConfirmPassword(e.target.value)}
-/>
+            <button type="submit" className="btn-auth-primary">{language === "ID" ? "Daftar" : "Sign Up"}</button>
+          </form>
 
-          <button type="submit">Daftar</button>
-        </form>
+          <p className="auth-footer">
+            {language === "ID" ? "Sudah punya akun?" : "Already have an account?"} <Link to="/login">{language === "ID" ? "Masuk" : "Login"}</Link>
+          </p>
+        </div>
 
-        <p>
-          Sudah punya akun? <Link to="/login">Masuk</Link>
-        </p>
+        <div className="auth-right">
+          <img src={illuImg} alt="Illustration" />
+        </div>
       </div>
     </div>
   );

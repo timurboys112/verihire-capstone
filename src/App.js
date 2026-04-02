@@ -9,6 +9,7 @@ import Scan from './pages/Scan';
 import Profile from './pages/Profile';
 import Login from './pages/login';
 import Register from './pages/register';
+import ForgotPassword from './pages/ForgotPassword'; // ✅ IMPORT BARU
 import Chatbot from './components/Chatbot';
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
@@ -62,6 +63,9 @@ function App() {
               element={<Login setUser={setUser} language={language} />} 
             />
             <Route path="/register" element={<Register language={language} />} />
+            
+            {/* ✅ ROUTE BARU: Forgot Password */}
+            <Route path="/forgot-password" element={<ForgotPassword language={language} />} />
 
             {/* ✅ Proteksi pakai user */}
             <Route 
