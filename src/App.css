@@ -9,17 +9,29 @@ body { font-family: 'Inter', sans-serif; background: #F8FAFF; color: #1E293B; ov
 .badge-ui { background: #Eef2ff; color: #1a66ff; padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; display: inline-block; margin-bottom: 15px; }
 
 /* ============================================================
-   2. NAVBAR FINAL
+   2. NAVBAR FINAL (FIXED: NO BLUE LINE) 🛡️
    ============================================================ */
-.main-nav-final { background: white; border-bottom: 1px solid #f1f5f9; padding: 15px 0; position: sticky; top: 0; z-index: 1000; }
+.main-nav-final { 
+  background: white; 
+  border-bottom: none; /* Garis bawah dihapus */
+  padding: 15px 0; 
+  position: sticky; 
+  top: 0; 
+  z-index: 1000; 
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Shadow halus sebagai pengganti garis */
+}
 .nav-content-final { display: flex; justify-content: space-between; align-items: center; }
 .nav-brand-final { display: flex; align-items: center; min-width: 150px; }
 .nav-logo-img-final { height: 80px !important; width: auto; display: block; object-fit: contain; }
 .nav-right-group-final { display: flex; align-items: center; gap: 30px; }
 .nav-menu-final { display: flex; list-style: none; gap: 25px; margin: 0; padding: 0; }
-.nav-menu-final a { text-decoration: none; color: #64748B; font-weight: 500; font-size: 0.95rem; transition: 0.3s; }
+.nav-menu-final a { text-decoration: none; color: #64748B; font-weight: 500; font-size: 0.95rem; transition: 0.3s; position: relative; }
+
+/* Warna menu aktif */
 .nav-menu-final li.active a { color: #1A66FF; font-weight: 600; }
-.nav-menu-final li.active::after { content: ""; position: absolute; bottom: -21px; left: 0; width: 100%; height: 3px; background: #1A66FF; border-radius: 10px 10px 0 0; }
+
+/* GARIS BIRU PANJANG DIHAPUS DISINI (li.active::after dihapus) */
+
 .nav-lang-final { display: flex; background: #f1f5f9; padding: 4px; border-radius: 100px; }
 .nav-lang-final button { border: none; padding: 5px 12px; border-radius: 100px; cursor: pointer; background: transparent; color: #64748B; font-weight: bold; font-size: 0.75rem; transition: 0.3s; }
 .nav-lang-final button.active { background: #1A66FF; color: white; }
