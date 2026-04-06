@@ -60,17 +60,13 @@ const Profile = ({ user, language }) => {
 
   const t = content[language || 'ID'];
 
-// ================= AVATAR OPTIONS (3 Cowok & 3 Cewek - Lorelei Style) =================
   const avatarOptions = [
-    // --- Versi Cowok ---
-    "https://api.dicebear.com/7.x/lorelei/svg?seed=Felix&backgroundColor=b6e3f4", // Cowok 1
-    "https://api.dicebear.com/7.x/lorelei/svg?seed=Leo&backgroundColor=c0aede",   // Cowok 2
-    "https://api.dicebear.com/7.x/lorelei/svg?seed=Jack&backgroundColor=d1d4f9",  // Cowok 3
-    
-    // --- Versi Cewek ---
-    "https://api.dicebear.com/7.x/lorelei/svg?seed=Aneka&backgroundColor=ffdfbf", // Cewek 1
-    "https://api.dicebear.com/7.x/lorelei/svg?seed=Nala&backgroundColor=ffd5dc",  // Cewek 2
-    "https://api.dicebear.com/7.x/lorelei/svg?seed=Zara&backgroundColor=ccfbf1",  // Cewek 3
+    "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+    "https://cdn-icons-png.flaticon.com/512/3135/3135768.png",
+    "https://cdn-icons-png.flaticon.com/512/4128/4128176.png",
+    "https://cdn-icons-png.flaticon.com/512/3135/3135789.png",
+    "https://cdn-icons-png.flaticon.com/512/6997/6997662.png",
+    "https://cdn-icons-png.flaticon.com/512/4128/4128335.png"
   ];
 
   // ================= STATE =================
@@ -127,13 +123,41 @@ const Profile = ({ user, language }) => {
   return (
     <div className="profile-wrapper-final">
       <div className="container">
+        
+        {/* SECTION: PROFILE CARD */}
         {!isChangingPassword && (
           <section className="user-card-final">
-            <div className="avatar-box-final">
-              {avatar ? <img src={avatar} alt="avatar" className="avatar-img" /> : avatarLetter}
+            
+            {/* KIRI: AVATAR SIDE */}
+            <div className="avatar-side-final">
+              <div className="avatar-box-final">
+                {avatar ? (
+                  <img src={avatar} alt="avatar" className="avatar-img" />
+                ) : (
+                  <span className="avatar-letter">{avatarLetter}</span>
+                )}
+              </div>
+              
+              {isEditing && (
+                <>
+                  <p className="label-small">{t.labelAvatar}</p>
+                  <div className="avatar-picker-grid">
+                    {avatarOptions.map((img, i) => (
+                      <div 
+                        key={i} 
+                        className={`avatar-option bg${i + 1} ${avatar === img ? "active" : ""}`}
+                        onClick={() => setAvatar(img)}
+                      >
+                        <img src={img} alt="option" />
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
-            <div className="user-info-final">
+            {/* KANAN: INFO / EDIT SIDE */}
+            <div className="profile-form-side">
               {isEditing ? (
                 <div className="edit-form-final">
                   <div className="form-group-final">
@@ -144,45 +168,36 @@ const Profile = ({ user, language }) => {
                     <label>{t.labelEmail}</label>
                     <input value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
                   </div>
-                  <div className="form-group-final">
-                    <label>{t.labelAvatar}</label>
-                    <div className="avatar-list">
-                      {avatarOptions.map((img, i) => (
-                        <img key={i} src={img} alt="avatar" 
-                             className={`avatar-option ${avatar === img ? "selected" : ""}`}
-                             onClick={() => setAvatar(img)} />
-                      ))}
-                    </div>
-                  </div>
-                  <div className="edit-actions-final">
-                    <button onClick={handleSave} className="btn-save-final">{t.btnSave}</button>
-                    <button onClick={() => setIsEditing(false)} className="btn-cancel-final">{t.btnCancel}</button>
+                  <div className="action-buttons-final">
+                    <button onClick={handleSave} className="btn-primary-final">{t.btnSave}</button>
+                    <button onClick={() => setIsEditing(false)} className="btn-secondary-final">{t.btnCancel}</button>
                   </div>
                 </div>
               ) : (
-                <>
+                <div className="user-info-display">
                   <h1>{username}</h1>
-                  <p className="email-text">{email}</p>
+                  <p className="joined-text">{email}</p>
+                  <div className="stats-row-final">
+                    <span><strong>{t.joined}</strong> {joinDate}</span>
+                    <span className="dot-separator">•</span>
+                    <span><strong>{t.totalScan}</strong> {history.length}</span>
+                  </div>
                   <div className="action-buttons-final">
-                    <button onClick={() => setIsEditing(true)} className="btn-secondary-final">{t.editBtn}</button>
+                    <button onClick={() => setIsEditing(true)} className="btn-primary-final">{t.editBtn}</button>
                     <button onClick={() => setIsChangingPassword(true)} className="btn-secondary-final">{t.passBtn}</button>
                   </div>
-                </>
+                </div>
               )}
-              <div className="stats-row-final">
-                <span><strong>{t.joined}</strong> {joinDate}</span>
-                <span className="dot-separator">•</span>
-                <span><strong>{t.totalScan}</strong> {history.length}</span>
-              </div>
             </div>
           </section>
         )}
 
+        {/* SECTION: CHANGE PASSWORD */}
         {isChangingPassword && (
           <section className="user-card-final">
-            <div className="user-info-final">
+            <div className="profile-form-side" style={{ width: '100%' }}>
               <h2>{t.passBtn}</h2>
-              <div className="edit-form-final">
+              <div className="edit-form-final" style={{ gridTemplateColumns: '1fr' }}>
                 <div className="form-group-final">
                   <label>{t.labelOldPass}</label>
                   <input type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} />
@@ -195,15 +210,16 @@ const Profile = ({ user, language }) => {
                   <label>{t.labelConfirmPass}</label>
                   <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
                 </div>
-                <div className="edit-actions-final">
-                  <button onClick={handleChangePassword} className="btn-save-final">{t.btnSave}</button>
-                  <button onClick={() => setIsChangingPassword(false)} className="btn-cancel-final">{t.btnCancel}</button>
+                <div className="action-buttons-final">
+                  <button onClick={handleChangePassword} className="btn-primary-final">{t.btnSave}</button>
+                  <button onClick={() => setIsChangingPassword(false)} className="btn-secondary-final">{t.btnCancel}</button>
                 </div>
               </div>
             </div>
           </section>
         )}
 
+        {/* SECTION: HISTORY */}
         {!isChangingPassword && (
           <section className="history-card-final">
             <div className="history-header-final">
@@ -226,7 +242,7 @@ const Profile = ({ user, language }) => {
                     <tr key={i}>
                       <td>{item.no}</td>
                       <td className="bold-text">{item.nama}</td>
-                      <td><span className="type-badge-final">{item.tipe}</span></td>
+                      <td><span className="status-badge-final process" style={{ background: '#E0F2F1', color: '#00796B'}}>{item.tipe}</span></td>
                       <td>
                         <span className={`status-badge-final ${item.status === "Selesai" || item.status === "Completed" ? "done" : "process"}`}>
                           {item.status}

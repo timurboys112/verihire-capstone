@@ -1,125 +1,143 @@
 import React, { useState } from 'react';
+import { FiUploadCloud, FiFileText, FiLink, FiShield, FiCpu, FiCheckCircle, FiSearch } from 'react-icons/fi';
 import './Scan.css';
 
 const Scan = ({ language }) => {
   const [input, setInput] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
 
-  const content = {
-    ID: {
-      badge: "🔍 Scanner Verifikasi Lowongan",
-      title: "Tempel Deskripsi Pekerjaan",
-      desc: "AI kami akan menganalisis postingan dan mendeteksi pola penipuan",
-      placeholder: "Tempel deskripsi di sini...",
-      btnScan: "Scan Sekarang",
-      exampleTitle: "Coba Contoh Ini",
-      ex1Title: "Risiko Tinggi",
-      ex1Text: "URGENT!! Hasilkan $5000/minggu! Kirim biaya $50 via WhatsApp...",
-      ex2Title: "Contoh Aman",
-      ex2Text: "Senior Engineer di TechCorp. Syarat: Pengalaman 5 tahun...",
-      btnUse: "Gunakan Contoh",
+  const isID = language === 'ID';
 
-      analyzeTitle: "✨ Apa yang Kami Analisis",
-      analyzeList: [
-        "Janji gaji tidak realistis",
-        "Metode kontak mencurigakan",
-        "Bahasa mendesak & tekanan",
-        "Permintaan biaya atau pembayaran",
-        "Deskripsi pekerjaan tidak jelas",
-        "Informasi perusahaan tidak lengkap"
-      ]
-    },
-    EN: {
-      badge: "🔍 Job Verification Scanner",
-      title: "Paste Job Description",
-      desc: "Our AI will analyze the posting and detect potential fraud patterns",
-      placeholder: "Paste description here...",
-      btnScan: "Scan Now",
-      exampleTitle: "Try These Examples",
-      ex1Title: "High Risk",
-      ex1Text: "URGENT!! Earn $5000/week! Send $50 fee via WhatsApp...",
-      ex2Title: "Safe Example",
-      ex2Text: "Senior Engineer at TechCorp. Requirements: 5 years experience...",
-      btnUse: "Use Example",
-
-      analyzeTitle: "✨ What We Analyze",
-      analyzeList: [
-        "Unrealistic salary promises",
-        "Suspicious contact methods",
-        "Urgent language and pressure tactics",
-        "Payment or fee requests",
-        "Vague job descriptions",
-        "Missing company information"
-      ]
-    }
+  // Objek Teks Bilingual
+  const t = {
+    badge: isID ? "Scanner Verifikasi Lowongan" : "Job Verification Scanner",
+    title: isID ? "Tempel Deskripsi Pekerjaan" : "Paste Job Description",
+    subtitle: isID ? "AI kami akan menganalisis postingan dan mendeteksi pola penipuan" : "Our AI will analyze the posting and detect potential fraud patterns",
+    cardLabel: isID ? "Postingan Lowongan" : "Job Posting",
+    tabUploadTitle: isID ? "Unggah Dokumen" : "Upload Document",
+    tabPasteTitle: isID ? "Tempel Teks" : "Paste Text",
+    tabPasteSub: isID ? "Ketik atau tempel deskripsi" : "Type or paste your job description",
+    dropzoneTxt: isID ? "Tarik & lepas deskripsi lowongan" : "Drag & drop the job description",
+    browse: isID ? "Pilih File" : "Browse File",
+    supported: isID ? "Mendukung: PDF, DOCX, JPG, PNG (Maks 5MB)" : "Supported: PDF, DOCX, JPG, PNG (Max 5MB)",
+    placeholder: isID ? "Tempel deskripsi lowongan di sini..." : "Paste your job description here...",
+    btnScan: isID ? "Scan Sekarang" : "Scan Now",
+    feat1: isID ? "Analisis Berbasis AI" : "AI-Powered Analysis",
+    feat2: isID ? "Tips Ramah ATS" : "ATS-Friendly Tips",
+    feat3: isID ? "Cepat & Aman" : "Fast & Secure",
+    exTitle: isID ? "Coba Contoh Ini" : "Try These Examples",
+    exHigh: isID ? "Risiko Tinggi" : "High Risk",
+    exSafe: isID ? "Aman" : "Safe",
+    btnUse: isID ? "Gunakan Contoh" : "Use This Example",
+    analyzeTitle: isID ? "Apa yang Kami Analisis" : "What We Analyze"
   };
-
-  const t = content[language || 'ID'];
 
   const handleUseExample = (text) => setInput(text);
 
   return (
-    <div className="scan-page">
-      <div className="container">
+    <div className="scan-page-wrapper">
+      <div className="container-figma">
+        
+        <header className="scan-hero">
+          <div className="scan-badge">
+            <FiSearch className="mr-5" /> {t.badge}
+          </div>
+          <h1 className="figma-title">{t.title}</h1>
+          <p className="figma-subtitle">{t.subtitle}</p>
+        </header>
 
-        {/* HEADER */}
-        <div className="scan-header">
-          <span className="badge-ui">{t.badge}</span>
-          <h1>{t.title}</h1>
-          <p>{t.desc}</p>
-        </div>
+        <div className="main-white-card">
+          <div className="card-label-top">
+             <FiFileText className="blue-icon" /> {t.cardLabel}
+          </div>
 
-        {/* INPUT */}
-        <div className="scan-card">
-          <textarea 
-            placeholder={t.placeholder} 
-            value={input} 
-            onChange={(e) => setInput(e.target.value)} 
-          />
-          <button className="btn-main">{t.btnScan}</button>
-        </div>
+          <div className="split-layout">
+            <div className="input-column">
+               <div className="tab-header-figma active">
+                  <div className="tab-icon-box"><FiFileText /></div>
+                  <div className="tab-text">
+                    <strong>{t.tabUploadTitle}</strong>
+                    <small>PDF, DOCX, JPG, PNG (Max 5MB)</small>
+                  </div>
+               </div>
 
-        {/* EXAMPLES */}
-        <div className="examples-section">
-          <h2>{t.exampleTitle}</h2>
-
-          <div className="examples-grid">
-
-            <div className="example-card">
-              <div className="example-header red">
-                ⚠️ {t.ex1Title}
-              </div>
-              <p>{t.ex1Text}</p>
-              <button onClick={() => handleUseExample(t.ex1Text)}>
-                {t.btnUse}
-              </button>
+               <div className="figma-dropzone">
+                  <input type="file" id="job-upload" hidden onChange={(e) => setSelectedFile(e.target.files[0])} />
+                  <label htmlFor="job-upload">
+                    <FiUploadCloud className="cloud-svg" />
+                    <p>{t.dropzoneTxt} <br /> or <span>{t.browse}</span></p>
+                    <small className="muted-text">{t.supported}</small>
+                    {selectedFile && <div className="selected-tag">{selectedFile.name}</div>}
+                  </label>
+               </div>
             </div>
 
-            <div className="example-card">
-              <div className="example-header green">
-                ✅ {t.ex2Title}
-              </div>
-              <p>{t.ex2Text}</p>
-              <button onClick={() => handleUseExample(t.ex2Text)}>
-                {t.btnUse}
-              </button>
+            <div className="divider-v">
+               <div className="or-bubble">OR</div>
             </div>
 
+            <div className="input-column">
+               <div className="tab-header-figma muted">
+                  <div className="tab-icon-box gray"><FiLink /></div>
+                  <div className="tab-text">
+                    <strong>{t.tabPasteTitle} <span className="light-text">Or URL</span></strong>
+                    <small>{t.tabPasteSub}</small>
+                  </div>
+               </div>
+
+               <div className="textarea-container">
+                  <textarea 
+                    placeholder={t.placeholder}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                  ></textarea>
+                  <div className="char-count-figma">{input.length} characters</div>
+               </div>
+            </div>
           </div>
+
+          <button className="btn-scan-figma">
+            <FiCpu className="mr-10" /> {t.btnScan}
+          </button>
         </div>
 
-        {/* WHAT WE ANALYZE */}
-        <div className="analyze-section">
-          <h2>{t.analyzeTitle}</h2>
+        <div className="features-row-figma">
+           <div className="feat-card"><FiCpu className="blue-icon" /> {t.feat1}</div>
+           <div className="feat-card"><FiShield className="blue-icon" /> {t.feat2}</div>
+           <div className="feat-card"><FiCheckCircle className="blue-icon" /> {t.feat3}</div>
+        </div>
 
-          <div className="analyze-grid">
-            {t.analyzeList.map((item, index) => (
-              <div key={index} className="analyze-item">
-                • {item}
+        <section className="try-examples">
+           <h3 className="section-title-figma">{t.exTitle}</h3>
+           <div className="examples-grid-figma">
+              <div className="ex-card-figma">
+                 <div className="ex-head">{isID ? "Contoh Risiko Tinggi" : "High Risk Example"} <span className="badge-red">{t.exHigh}</span></div>
+                 <p>{isID ? "DARURAT!! Hasilkan $5000/minggu kerja dari rumah! Tanpa pengalaman. Kirim biaya pendaftaran $50..." : "URGENT!! Earn $5000/week working from home! No experience needed. Just send $50 registration fee..."}</p>
+                 <button className="btn-use-ex" onClick={() => handleUseExample("URGENT!! Earn $5000/week...")}>{t.btnUse}</button>
               </div>
-            ))}
-          </div>
-        </div>
+              <div className="ex-card-figma">
+                 <div className="ex-head">{isID ? "Contoh Aman" : "Safe Example"} <span className="badge-green">{t.exSafe}</span></div>
+                 <p>{isID ? "Senior Software Engineer di TechCorp. Tanggung Jawab: Mengembangkan aplikasi web skala besar..." : "Senior Software Engineer at TechCorp. Responsibilities: Develop scalable web applications..."}</p>
+                 <button className="btn-use-ex" onClick={() => handleUseExample("Senior Software Engineer at TechCorp...")}>{t.btnUse}</button>
+              </div>
+           </div>
+        </section>
 
+        <div className="analyze-blue-card">
+           <h4><FiCpu className="blue-icon" /> {t.analyzeTitle}</h4>
+           <div className="analyze-grid-figma">
+              <ul>
+                 <li>• {isID ? "Janji gaji tidak realistis" : "Unrealistic salary promises"}</li>
+                 <li>• {isID ? "Metode kontak mencurigakan" : "Suspicious contact methods"}</li>
+                 <li>• {isID ? "Bahasa mendesak dan taktik tekanan" : "Urgent language and pressure tactics"}</li>
+              </ul>
+              <ul>
+                 <li>• {isID ? "Permintaan pembayaran atau biaya" : "Payment or fee requests"}</li>
+                 <li>• {isID ? "Deskripsi pekerjaan tidak jelas" : "Vague job descriptions"}</li>
+                 <li>• {isID ? "Informasi perusahaan hilang" : "Missing company information"}</li>
+              </ul>
+           </div>
+        </div>
       </div>
     </div>
   );

@@ -7,54 +7,122 @@
   background: #F8FAFF;
 }
 
-/* Container utama kartu */
-.user-card-final, .history-card-final {
+/* Layouting Kartu Utama */
+.user-card-final {
   background: white;
   padding: 40px;
   border-radius: 24px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
   border: 1px solid #edf2f7;
   margin-bottom: 40px;
+  display: flex; /* Sejajarkan Avatar (Kiri) dan Form (Kanan) */
+  gap: 50px;
+  align-items: flex-start;
   text-align: left;
 }
 
-/* Tampilan Header */
-.user-card-final h1, .user-card-final h2 {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #1E293B;
-  margin-bottom: 20px;
+/* Kiri: Sisi Avatar & Picker */
+.avatar-side-final {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  min-width: 220px;
 }
 
-/* Avatar Styling */
 .avatar-box-final {
-  width: 100px;
-  height: 100px;
+  width: 150px;
+  height: 150px;
   background: #EEF2FF;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #1A66FF;
   overflow: hidden;
-  margin-bottom: 20px;
+  border: 4px solid white;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
 }
 
 .avatar-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
-/* Form Group & Inputs (BIAR GAK BURIK) */
-.edit-form-final {
+/* Judul Kecil Choose Avatar */
+.label-small {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #94A3B8;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: -5px;
+}
+
+/* Grid Pilihan Avatar - INI KUNCI BIAR GAK TUMPUK BAWAH */
+.avatar-picker-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 12px;
+  width: 100%;
+}
+
+.avatar-option {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  overflow: hidden;
+}
+
+.avatar-option img {
+  width: 80%;
+  height: auto;
+}
+
+.avatar-option:hover { transform: scale(1.1); }
+.avatar-option.active {
+  border-color: #1A66FF;
+  background: white !important;
+  box-shadow: 0 0 15px rgba(26, 102, 255, 0.2);
+}
+
+/* Warna background tiap avatar */
+.bg1 { background-color: #E0F2F1; }
+.bg2 { background-color: #E8EAF6; }
+.bg3 { background-color: #F3E5F5; }
+.bg4 { background-color: #FFF3E0; }
+.bg5 { background-color: #FCE4EC; }
+.bg6 { background-color: #E1F5FE; }
+
+/* Kanan: Sisi Form & Data */
+.profile-form-side {
+  flex: 1;
+}
+
+.user-card-final h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #1E293B;
+  margin-bottom: 5px;
+}
+
+.joined-text {
+  color: #64748B;
+  font-size: 0.9rem;
+  margin-bottom: 30px;
+}
+
+/* Input Styles */
+.edit-form-final {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 20px;
-  max-width: 500px;
-  margin-top: 20px;
 }
 
 .form-group-final {
@@ -64,145 +132,77 @@
 }
 
 .form-group-final label {
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: #64748B;
-}
-
-.form-group-final input {
-  padding: 12px 16px;
-  border: 1px solid #E2E8F0;
-  border-radius: 12px;
-  font-family: inherit;
-  font-size: 1rem;
-  outline: none;
-  transition: 0.3s;
-  background: #F8FAFF;
-}
-
-.form-group-final input:focus {
-  border-color: #1A66FF;
-  box-shadow: 0 0 0 4px rgba(26, 102, 255, 0.1);
-}
-
-/* Avatar Selection */
-.avatar-list {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 10px;
-}
-
-.avatar-option {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 3px solid transparent;
-  transition: 0.3s;
-  padding: 2px;
-  background: #f1f5f9;
-}
-
-.avatar-option:hover {
-  transform: scale(1.1);
-}
-
-.avatar-option.selected {
-  border-color: #1A66FF;
-  background: #1A66FF;
-}
-
-/* Tombol Aksi */
-.edit-actions-final, .action-buttons-final {
-  display: flex;
-  gap: 12px;
-  margin-top: 15px;
-}
-
-.btn-save-final, .btn-primary-final {
-  background: #1A66FF;
-  color: white;
-  border: none;
-  padding: 12px 25px;
-  border-radius: 12px;
   font-weight: 700;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.btn-secondary-final {
-  background: white;
-  border: 1px solid #E2E8F0;
-  padding: 10px 20px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: 0.3s;
-}
-
-.btn-cancel-final {
-  background: #F1F5F9;
-  color: #64748B;
-  border: none;
-  padding: 12px 25px;
-  border-radius: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-/* Stats Row */
-.stats-row-final {
-  display: flex;
-  gap: 15px;
-  margin-top: 25px;
-  color: #64748B;
-  font-size: 0.9rem;
-}
-
-.dot-separator { color: #CBD5E1; }
-
-/* Tabel Riwayat */
-.table-container-final {
-  overflow-x: auto;
-  margin-top: 20px;
-}
-
-.table-final {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.table-final th {
-  text-align: left;
-  padding: 15px;
-  background: #F8FAFF;
-  color: #64748B;
   font-size: 0.8rem;
+  color: #475569;
   text-transform: uppercase;
 }
 
-.table-final td {
-  padding: 18px 15px;
-  border-bottom: 1px solid #F1F5F9;
+.form-group-final input {
+  padding: 14px 18px;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  font-size: 1rem;
+  background: #F8FAFF;
+  transition: 0.3s;
 }
 
-.status-badge-final {
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
+.form-group-final input:focus {
+  background: white;
+  border-color: #1A66FF;
+  box-shadow: 0 0 0 4px rgba(26, 102, 255, 0.1);
+  outline: none;
 }
 
-.status-badge-final.done { background: #DCFCE7; color: #15803D; }
-.status-badge-final.process { background: #FEF9C3; color: #854D0E; }
+/* Button UI (BIAR GAK KAYAK TOMBOL JADUL) */
+.action-buttons-final {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
 
-.btn-delete-final {
-  background: #FFF1F1;
-  color: #FF4747;
+.btn-primary-final {
+  background: #1A66FF;
+  color: white;
   border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 14px 35px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1rem;
   cursor: pointer;
-  font-size: 0.8rem;
+  transition: 0.3s;
+  box-shadow: 0 4px 12px rgba(26, 102, 255, 0.2);
+}
+
+.btn-primary-final:hover {
+  background: #004ecc;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(26, 102, 255, 0.3);
+}
+
+.btn-secondary-final {
+  background: #F1F5F9;
+  color: #475569;
+  border: none;
+  padding: 14px 30px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-secondary-final:hover { background: #E2E8F0; }
+
+/* Responsive Mobile */
+@media (max-width: 768px) {
+  .user-card-final {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 30px 20px;
+  }
+  .edit-form-final { grid-template-columns: 1fr; width: 100%; }
+  .avatar-side-final { min-width: 100%; margin-bottom: 30px; }
+  .action-buttons-final { width: 100%; }
+  .btn-primary-final, .btn-secondary-final { flex: 1; }
 }

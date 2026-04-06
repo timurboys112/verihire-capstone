@@ -1,148 +1,168 @@
-import React, { useState } from "react";
-import "./scanCV.css";
+import React, { useState } from 'react';
+import { FiUploadCloud, FiFileText, FiCheckCircle, FiCpu, FiShield, FiSearch } from 'react-icons/fi';
+import './ScanCV.css';
 
-const ScanCV = () => {
-  const [text, setText] = useState("");
-  const [fileName, setFileName] = useState("");
+function ScanCV({ language }) {
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [pastedText, setPastedText] = useState("");
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) setFileName(file.name);
+  const isID = language === 'ID';
+
+  // Objek Teks Bilingual
+  const t = {
+    badge: isID ? "Halaman Scan CV" : "Scan Page CV",
+    subtitle: isID ? "Unggah CV Anda untuk meningkatkan peluang dalam lamaran kerja" : "Upload your CV to improve your chances in job applications",
+    cardLabel: isID ? "Unggah CV" : "CV Upload",
+    tabUpload: isID ? "Unggah Dokumen" : "Upload Document",
+    tabPaste: isID ? "Tempel Teks" : "Paste Text",
+    tabPasteSub: isID ? "Ketik atau tempel konten CV" : "Type or paste your CV content",
+    dropzone: isID ? "Tarik & lepas CV Anda di sini" : "Drag & drop your CV here",
+    browse: isID ? "Pilih File" : "Browse File",
+    btnScan: isID ? "Scan CV Anda Sekarang" : "Scan Your CV Now",
+    howItWorks: isID ? "Cara Kerja" : "How It Works",
+    step1Title: isID ? "Unggah atau tempel CV" : "Upload or paste your CV",
+    step1Desc: isID ? "Kami mendukung dokumen atau teks biasa." : "We support documents or your plain text.",
+    step2Title: isID ? "Kami menganalisis CV Anda" : "We analyze your CV",
+    step2Desc: isID ? "Dapatkan wawasan detail dan area perbaikan." : "Get detailed insights and improvement areas.",
+    step3Title: isID ? "Tampil menonjol & perbaiki" : "Improve and stand out",
+    step3Desc: isID ? "Lamar dengan percaya diri dan tarik perhatian." : "Apply with confidence and get noticed."
   };
 
   return (
-    <div className="scan-wrapper">
+    <div className="scan-cv-container">
+      <div className="container">
+        
+        <div className="cv-header-section">
+          <div className="badge-scan">
+            <FiSearch className="mr-5" /> {t.badge}
+          </div>
+          <h1 className="main-title">Scan Your CV</h1>
+          <p className="main-subtitle">{t.subtitle}</p>
+        </div>
 
-      {/* HEADER */}
-      <div className="scan-header">
-        <div className="badge">🔍 Scan Page CV</div>
-        <h1>Scan Your CV</h1>
-        <p>Upload your CV to improve your chances in job applications</p>
-      </div>
+        <div className="cv-main-card">
+          <div className="card-top-header">
+            <FiFileText className="icon-blue" /> {t.cardLabel}
+          </div>
 
-      {/* CARD */}
-      <div className="card">
-        <h3 className="card-title">📄 CV Upload</h3>
-
-        <div className="upload-container">
-
-          {/* LEFT */}
-          <div className="upload-box">
-            <div className="box-header">
-              📄 <span>Upload Document</span>
-            </div>
-
-            <label className="drop-area">
-              <input type="file" hidden onChange={handleFileChange} />
-              <div>
-                <div className="cloud">☁️⬆️</div>
-                <p>Drag & drop your CV here</p>
-                <span>or <b>Browse File</b></span>
-                {fileName && <p className="file-name">{fileName}</p>}
+          <div className="card-content-grid">
+            <div className="content-side">
+              <div className="tab-indicator active">
+                <FiFileText className="mr-10" /> 
+                <div>
+                    <strong>{t.tabUpload}</strong><br/>
+                    <small>PDF, DOCX (Max 5MB)</small>
+                </div>
               </div>
-            </label>
-
-            <small>Supported: PDF, DOCX (Max 5MB)</small>
-          </div>
-
-          {/* OR */}
-          <div className="or">OR</div>
-
-          {/* RIGHT */}
-          <div className="text-box">
-            <div className="box-header">
-              🅣 <span>Paste Text</span>
-            </div>
-
-            <textarea
-              placeholder="Paste your CV content here..."
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-            />
-            <small>{text.length} characters</small>
-          </div>
-
-        </div>
-
-        <button className="scan-btn">Scan Your CV Now</button>
-      </div>
-
-      {/* FEATURES */}
-      <div className="features">
-        <div className="feature">
-          🤖
-          <div>
-            <h4>AI-Powered Analysis</h4>
-            <p>Smart insights to improve your CV</p>
-          </div>
-        </div>
-
-        <div className="feature">
-          🛡️
-          <div>
-            <h4>ATS-Friendly Tips</h4>
-            <p>Optimize for applicant tracking systems</p>
-          </div>
-        </div>
-
-        <div className="feature">
-          🔒
-          <div>
-            <h4>Fast & Secure</h4>
-            <p>Your data is never stored</p>
-          </div>
-        </div>
-      </div>
-
-      {/* HOW IT WORKS */}
-      <div className="how">
-        <h2>How It Works</h2>
-
-        <div className="how-content">
-          
-          {/* LEFT STEPS */}
-          <div className="steps">
-            <div className="step">
-              <span>1</span>
-              <div>
-                <h4>Upload or paste your CV</h4>
-                <p>We support documents or plain text.</p>
+              
+              <div className="dropzone-box">
+                <input type="file" id="cv-file" hidden onChange={(e) => setSelectedFile(e.target.files[0])} />
+                <label htmlFor="cv-file" className="dropzone-label">
+                  <FiUploadCloud className="upload-icon-big" />
+                  <p>{t.dropzone} or <span>{t.browse}</span></p>
+                  <small className="file-info">
+                    {selectedFile ? `Selected: ${selectedFile.name}` : "Supported: .PDF, .DOCX (Max 5MB)"}
+                  </small>
+                </label>
               </div>
             </div>
 
-            <div className="step">
-              <span>2</span>
-              <div>
-                <h4>We analyze your CV</h4>
-                <p>Get detailed insights and improvement areas.</p>
-              </div>
+            <div className="or-divider">
+              <div className="line"></div>
+              <div className="or-circle">OR</div>
+              <div className="line"></div>
             </div>
 
-            <div className="step">
-              <span>3</span>
-              <div>
-                <h4>Improve and stand out</h4>
-                <p>Apply with confidence and get noticed.</p>
+            <div className="content-side">
+              <div className="tab-indicator gray">
+                <FiFileText className="mr-10" />
+                <div>
+                    <strong>{t.tabPaste}</strong><br/>
+                    <small>{t.tabPasteSub}</small>
+                </div>
+              </div>
+
+              <div className="paste-box">
+                <textarea 
+                  placeholder={isID ? "Tempel konten CV Anda di sini..." : "Paste your CV content here..."}
+                  value={pastedText}
+                  onChange={(e) => setPastedText(e.target.value)}
+                ></textarea>
+                <div className="char-count">{pastedText.length} characters</div>
               </div>
             </div>
           </div>
 
-          {/* RIGHT BOX */}
-          <div className="tips-box">
-            <ul>
-              <li>✔ Resume structure analysis</li>
-              <li>✔ Personalized improvement tips</li>
-              <li>✔ ATS-friendly suggestions</li>
-              <li>✔ Keyword recommendations</li>
-              <li>✔ Fast results in seconds</li>
-            </ul>
-          </div>
+          <button className="btn-scan-primary">{t.btnScan}</button>
+        </div>
 
+        <div className="features-grid-row">
+          <div className="feature-small-card">
+            <div className="feat-icon-blue"><FiCpu /></div>
+            <div className="feat-text">
+                <strong>AI-Powered Analysis</strong>
+                <p>{isID ? "Wawasan cerdas untuk CV Anda" : "Smart insights to improve your CV"}</p>
+            </div>
+          </div>
+          <div className="feature-small-card">
+            <div className="feat-icon-blue"><FiCheckCircle /></div>
+            <div className="feat-text">
+                <strong>ATS-Friendly Tips</strong>
+                <p>{isID ? "Optimalkan untuk sistem pelacakan" : "Optimize for applicant tracking systems"}</p>
+            </div>
+          </div>
+          <div className="feature-small-card">
+            <div className="feat-icon-blue"><FiShield /></div>
+            <div className="feat-text">
+                <strong>Fast & Secure</strong>
+                <p>{isID ? "Data Anda tidak pernah disimpan" : "Your data is never stored"}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="how-it-works-section">
+            <h2 className="section-title-how">
+                <FiCheckCircle className="icon-blue-big" /> {t.howItWorks}
+            </h2>
+            <div className="how-grid">
+                <div className="how-steps-list">
+                    <div className="step-item">
+                        <div className="step-num">1</div>
+                        <div className="step-txt">
+                            <strong>{t.step1Title}</strong>
+                            <p>{t.step1Desc}</p>
+                        </div>
+                    </div>
+                    <div className="step-item">
+                        <div className="step-num">2</div>
+                        <div className="step-txt">
+                            <strong>{t.step2Title}</strong>
+                            <p>{t.step2Desc}</p>
+                        </div>
+                    </div>
+                    <div className="step-item">
+                        <div className="step-num">3</div>
+                        <div className="step-txt">
+                            <strong>{t.step3Title}</strong>
+                            <p>{t.step3Desc}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="how-benefits-card">
+                    <ul className="benefit-list">
+                        <li><FiCheckCircle className="check-blue" /> {isID ? "Analisis struktur resume" : "Resume structure analysis"}</li>
+                        <li><FiCheckCircle className="check-blue" /> {isID ? "Tips perbaikan personal" : "Personalized improvement tips"}</li>
+                        <li><FiCheckCircle className="check-blue" /> {isID ? "Saran ramah ATS" : "ATS-friendly suggestions"}</li>
+                        <li><FiCheckCircle className="check-blue" /> {isID ? "Rekomendasi kata kunci" : "Keyword recommendations"}</li>
+                        <li><FiCheckCircle className="check-blue" /> {isID ? "Hasil cepat dalam hitungan detik" : "Fast results in seconds"}</li>
+                    </ul>
+                </div>
+            </div>
         </div>
       </div>
-
     </div>
   );
-};
+}
 
 export default ScanCV;
