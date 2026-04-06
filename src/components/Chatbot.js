@@ -1,3 +1,4 @@
+import chatbotIcon from '../assets/chatbot.png';
 import React, { useState } from 'react';
 
 const Chatbot = ({ language }) => {
@@ -27,8 +28,10 @@ const Chatbot = ({ language }) => {
     <div className="chatbot-wrapper">
       {/* TOMBOL BULAT */}
       <button className="chatbot-button" onClick={() => setIsOpen(!isOpen)}>
-        {isOpen ? '✕' : '💬'}
-      </button>
+  {isOpen ? '✕' : (
+    <img src={chatbotIcon} alt="chatbot" style={{ width: '24px', height: '24px' }} />
+  )}
+</button>
 
       {/* JENDELA CHAT */}
       {isOpen && (

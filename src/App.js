@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
+
 // Import Components & Pages
 import Navbar from './components/navbar';
 import Home from './pages/Home';
@@ -11,6 +12,7 @@ import Login from './pages/login';
 import Register from './pages/register';
 import ForgotPassword from './pages/ForgotPassword'; // ✅ IMPORT BARU
 import Chatbot from './components/Chatbot';
+import ScanCV from './pages/ScanCV';
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
@@ -72,6 +74,8 @@ function App() {
               path="/profile" 
               element={user ? <Profile user={user} language={language} /> : <Navigate to="/login" />} 
             />
+
+            <Route path="/scan-cv" element={<ScanCV />} />
 
           </Routes>
         </div>

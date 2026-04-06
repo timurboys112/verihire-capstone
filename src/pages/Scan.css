@@ -1,0 +1,136 @@
+.scan-page {
+  background: #f6f8fc;
+  min-height: 100vh;
+  padding: 40px 20px;
+}
+
+/* HEADER */
+.scan-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.badge-ui {
+  background: #e6efff;
+  color: #3b6cff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+}
+
+.scan-header h1 {
+  margin-top: 10px;
+  font-size: 30px;
+}
+
+.scan-header p {
+  color: #64748b;
+}
+
+/* CARD INPUT */
+.scan-card {
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+  max-width: 700px;
+  margin: auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.scan-card textarea {
+  width: 100%;
+  height: 150px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 15px;
+}
+
+.btn-main {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(to right, #6a8cff, #3b6cff);
+  color: white;
+  cursor: pointer;
+}
+
+/* EXAMPLES */
+.examples-section {
+  margin-top: 50px;
+}
+
+.examples-section h2 {
+  margin-bottom: 20px;
+}
+
+/* GRID */
+.examples-grid {
+  display: flex;
+  gap: 20px;
+}
+
+/* CARD */
+.example-card {
+  background: white;
+  border-radius: 14px;
+  padding: 20px;
+  flex: 1;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+}
+
+.example-header {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.example-header.red {
+  color: #ef4444;
+}
+
+.example-header.green {
+  color: #22c55e;
+}
+
+.example-card p {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 15px;
+}
+
+.example-card button {
+  background: #eef3ff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* HOVER EFFECT 🔥 */
+.example-card:hover {
+  transform: translateY(-5px);
+  transition: 0.3s;
+}
+.analyze-section {
+  margin-top: 40px;
+  padding: 25px;
+  border-radius: 12px;
+  background: #eef3ff;
+}
+
+.analyze-section h2 {
+  margin-bottom: 20px;
+  color: #2b4eff;
+}
+
+.analyze-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 40px;
+}
+
+.analyze-item {
+  font-size: 14px;
+  color: #333;
+}
