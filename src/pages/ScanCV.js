@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { FiUploadCloud, FiFileText, FiCheckCircle, FiCpu, FiShield, FiSearch } from 'react-icons/fi';
-import './ScanCV.css';
+import './scanCV.css';
+
 
 function ScanCV({ language }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [pastedText, setPastedText] = useState("");
-
+const [showModal, setShowModal] = useState(false);
   const isID = language === 'ID';
 
   // Objek Teks Bilingual
@@ -31,6 +32,89 @@ function ScanCV({ language }) {
   return (
     <div className="scan-cv-container">
       <div className="container">
+
+        {showModal && (
+  <div className="modal-overlay">
+    <div className="modal-card">
+
+      {/* HEADER */}
+      <div className="modal-header">
+        <h2>CV Scan Results</h2>
+        <button className="close-btn" onClick={() => setShowModal(false)}>✕</button>
+      </div>
+
+      {/* TOP SECTION */}
+      <div className="modal-top">
+        <div className="score-section">
+          <div className="score-circle">50</div>
+          <p>
+            CV Score <span className="badge">Medium</span>
+          </p>
+        </div>
+
+        <div className="user-info">
+          <h3>John Doe</h3>
+          <p>ID: #ID202456</p>
+          <p>Target Job: Senior Software Engineer</p>
+        </div>
+      </div>
+
+      {/* CONTENT */}
+      <div className="modal-grid">
+
+        <div className="card">
+          <h4>Medium Match</h4>
+          <p>
+            Your CV meets most of the key requirements of the target job and can be improved further.
+          </p>
+        </div>
+
+        <div className="card">
+          <h4>Strengths</h4>
+          <ul>
+            <li>Over 5 years of experience in software development</li>
+            <li>Proficient in Python and JavaScript</li>
+            <li>Demonstrated leadership and mentoring</li>
+          </ul>
+        </div>
+
+        <div className="card">
+          <h4>Improvement Advice</h4>
+          <p>
+            Your CV meets most requirements but still needs improvement to better match the job.
+          </p>
+        </div>
+
+        <div className="card">
+          <h4>Weaknesses</h4>
+          <ul>
+            <li>No mention of cloud platforms (AWS/Azure)</li>
+            <li>Lack of measurable achievements</li>
+            <li>No Scrum/Kanban keywords</li>
+          </ul>
+        </div>
+
+        <div className="card full">
+          <h4>Rephrase Suggestions</h4>
+          <ul>
+            <li>Add ATS-friendly keywords</li>
+            <li>Use strong action verbs</li>
+            <li>Improve formatting for readability</li>
+          </ul>
+        </div>
+
+        <div className="card full">
+          <h4>Job Recommendations</h4>
+          <ul>
+            <li>Lead Software Engineer</li>
+            <li>Solutions Architect</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+)}
         
         <div className="cv-header-section">
           <div className="badge-scan">
@@ -93,7 +177,12 @@ function ScanCV({ language }) {
             </div>
           </div>
 
-          <button className="btn-scan-primary">{t.btnScan}</button>
+          <button 
+  className="btn-scan-primary" 
+  onClick={() => setShowModal(true)}
+>
+  {t.btnScan}
+</button>
         </div>
 
         <div className="features-grid-row">
@@ -119,6 +208,12 @@ function ScanCV({ language }) {
             </div>
           </div>
         </div>
+
+<div className="examples-section">
+
+  
+  
+</div>
 
         <div className="how-it-works-section">
             <h2 className="section-title-how">

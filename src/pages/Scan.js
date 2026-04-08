@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { FiUploadCloud, FiFileText, FiLink, FiShield, FiCpu, FiCheckCircle, FiSearch } from 'react-icons/fi';
+import { FiUploadCloud, FiFileText, FiLink, FiCpu, FiSearch, FiCheckCircle, FiShield } from 'react-icons/fi';
 import './Scan.css';
+
 
 const Scan = ({ language }) => {
   const [input, setInput] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
+  const [showResult, setShowResult] = useState(false);
+  const [resultType, setResultType] = useState("legit");
+  const [loading, setLoading] = useState(false);
 
   const isID = language === 'ID';
 
-  // Objek Teks Bilingual
   const t = {
     badge: isID ? "Scanner Verifikasi Lowongan" : "Job Verification Scanner",
     title: isID ? "Tempel Deskripsi Pekerjaan" : "Paste Job Description",
@@ -22,22 +25,152 @@ const Scan = ({ language }) => {
     supported: isID ? "Mendukung: PDF, DOCX, JPG, PNG (Maks 5MB)" : "Supported: PDF, DOCX, JPG, PNG (Max 5MB)",
     placeholder: isID ? "Tempel deskripsi lowongan di sini..." : "Paste your job description here...",
     btnScan: isID ? "Scan Sekarang" : "Scan Now",
-    feat1: isID ? "Analisis Berbasis AI" : "AI-Powered Analysis",
-    feat2: isID ? "Tips Ramah ATS" : "ATS-Friendly Tips",
-    feat3: isID ? "Cepat & Aman" : "Fast & Secure",
-    exTitle: isID ? "Coba Contoh Ini" : "Try These Examples",
-    exHigh: isID ? "Risiko Tinggi" : "High Risk",
-    exSafe: isID ? "Aman" : "Safe",
-    btnUse: isID ? "Gunakan Contoh" : "Use This Example",
-    analyzeTitle: isID ? "Apa yang Kami Analisis" : "What We Analyze"
   };
 
-  const handleUseExample = (text) => setInput(text);
+  const handleScan = async () => {
+    if (!input && !selectedFile) {
+      alert("Masukkan teks atau upload file dulu!");
+      return;
+    }
+
+    const formData = new FormData();
+
+    if (selectedFile) {
+      formData.append("file", selectedFile);
+    } else {
+      formData.append("text", input);
+    }
+
+    try {
+      setLoading(true);
+
+      const res = await fetch("http://localhost:5000/analyze", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      const result = (data.result || "legit").toLowerCase();
+
+      setResultType(result);
+      setShowResult(true);
+
+    } catch (error) {
+      console.error(error);
+      setResultType("high");
+      setShowResult(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="scan-page-wrapper">
       <div className="container-figma">
-        
+
+{/* 🔥 POPUP CLEAN */}
+{showResult && (
+  <div className="modal-overlay">
+    <div className={`result-card-modern ${resultType}`}>
+
+      <button 
+        className="close-btn" 
+        onClick={() => setShowResult(false)}
+      >
+        ✖
+      </button>
+
+      {/* TITLE */}
+      <h2 className={`title ${resultType}`}>
+        {resultType === "high" && "HIGH RISK"}
+        {resultType === "suspicious" && "SUSPICIOUS"}
+        {resultType === "legit" && "LEGIT"}
+      </h2>
+
+      <p className="subtitle">
+        {resultType === "high" && "Analisis AI Mendeteksi Potensi Penipuan"}
+        {resultType === "suspicious" && "Analisis AI Mendeteksi Mempunyai Potensi Penipuan"}
+        {resultType === "legit" && "Analisis AI Mendeteksi Pekerjaan ini Asli"}
+      </p>
+
+      {/* RISK */}
+      <div className="risk-row">
+        <span>Risk Score</span>
+        <span>
+          {resultType === "high" && "85%"}
+          {resultType === "suspicious" && "50%"}
+          {resultType === "legit" && "10%"}
+        </span>
+      </div>
+
+      <div className="progress-bar">
+        <div 
+          className={`progress-fill ${resultType}`} 
+          style={{
+            width:
+              resultType === "high"
+                ? "85%"
+                : resultType === "suspicious"
+                ? "50%"
+                : "10%"
+          }}
+        />
+      </div>
+
+      {/* ALASAN */}
+      <div className="info-box">
+        <p className="section-title">Alasan Deteksi:</p>
+
+        {resultType === "high" && (
+          <ul>
+            <li>Gaji tidak realistis</li>
+            <li>Meminta transfer uang</li>
+            <li>Tidak ada info perusahaan</li>
+            <li>Tanpa interview</li>
+          </ul>
+        )}
+
+        {resultType === "suspicious" && (
+          <ul>
+            <li>Gaji mencurigakan</li>
+            <li>Berpotensi meminta uang</li>
+            <li>Info kurang jelas</li>
+            <li>Proses tidak transparan</li>
+          </ul>
+        )}
+
+        {resultType === "legit" && (
+          <ul>
+            <li>Gaji realistis</li>
+            <li>Tidak ada biaya</li>
+            <li>Perusahaan jelas</li>
+            <li>Ada interview</li>
+          </ul>
+        )}
+      </div>
+
+      {/* REKOMENDASI */}
+      <div className="info-box">
+        <p className="section-title">Rekomendasi:</p>
+
+        {resultType === "high" && (
+          <p>Tolak tawaran ini, terindikasi scam.</p>
+        )}
+
+        {resultType === "suspicious" && (
+          <p>Hati-hati, lakukan pengecekan lebih lanjut.</p>
+        )}
+
+        {resultType === "legit" && (
+          <p>Aman untuk dilanjutkan.</p>
+        )}
+      </div>
+
+    </div>
+  </div>
+)}
+
+        {/* HEADER */}
         <header className="scan-hero">
           <div className="scan-badge">
             <FiSearch className="mr-5" /> {t.badge}
@@ -46,98 +179,195 @@ const Scan = ({ language }) => {
           <p className="figma-subtitle">{t.subtitle}</p>
         </header>
 
+        {/* MAIN CARD */}
         <div className="main-white-card">
           <div className="card-label-top">
-             <FiFileText className="blue-icon" /> {t.cardLabel}
+            <FiFileText className="blue-icon" /> {t.cardLabel}
           </div>
 
           <div className="split-layout">
-            <div className="input-column">
-               <div className="tab-header-figma active">
-                  <div className="tab-icon-box"><FiFileText /></div>
-                  <div className="tab-text">
-                    <strong>{t.tabUploadTitle}</strong>
-                    <small>PDF, DOCX, JPG, PNG (Max 5MB)</small>
-                  </div>
-               </div>
+            {/* UPLOAD */}
+            {/* UPLOAD */}
+<div className="input-column">
+  <div className="tab-header-figma active">
+    <div className="tab-icon-box"><FiFileText /></div>
+    <div className="tab-text">
+      <strong>{t.tabUploadTitle}</strong>
+      <small>PDF, DOCX, JPG, PNG (Max 5MB)</small>
+    </div>
+  </div>
 
-               <div className="figma-dropzone">
-                  <input type="file" id="job-upload" hidden onChange={(e) => setSelectedFile(e.target.files[0])} />
-                  <label htmlFor="job-upload">
-                    <FiUploadCloud className="cloud-svg" />
-                    <p>{t.dropzoneTxt} <br /> or <span>{t.browse}</span></p>
-                    <small className="muted-text">{t.supported}</small>
-                    {selectedFile && <div className="selected-tag">{selectedFile.name}</div>}
-                  </label>
-               </div>
-            </div>
+  <div 
+    className="figma-dropzone"
+    onClick={() => document.getElementById("fileInput").click()}
+  >
+    <input
+      id="fileInput"
+      type="file"
+      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+      hidden
+      onChange={(e) => {
+        const file = e.target.files[0];
+
+        if (!file) return;
+
+        // 🔥 VALIDASI SIZE (MAX 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          alert("File terlalu besar! Maksimal 5MB");
+          return;
+        }
+
+        setSelectedFile(file);
+        setInput(""); // reset text kalau upload file
+      }}
+    />
+
+    <FiUploadCloud className="cloud-svg" />
+    <p>
+      {t.dropzoneTxt} <br /> 
+      <span style={{ color: "#4f7cff", cursor: "pointer" }}>
+        {t.browse}
+      </span>
+    </p>
+
+    <small className="muted-text">{t.supported}</small>
+
+    {selectedFile && (
+      <div className="selected-tag">
+        📄 {selectedFile.name}
+      </div>
+    )}
+  </div>
+</div>
+
+
 
             <div className="divider-v">
-               <div className="or-bubble">OR</div>
+              <div className="or-bubble">OR</div>
             </div>
 
+            {/* TEXT */}
             <div className="input-column">
-               <div className="tab-header-figma muted">
-                  <div className="tab-icon-box gray"><FiLink /></div>
-                  <div className="tab-text">
-                    <strong>{t.tabPasteTitle} <span className="light-text">Or URL</span></strong>
-                    <small>{t.tabPasteSub}</small>
-                  </div>
-               </div>
+              <div className="tab-header-figma muted">
+                <div className="tab-icon-box gray"><FiLink /></div>
+                <div className="tab-text">
+                  <strong>{t.tabPasteTitle}</strong>
+                  <small>{t.tabPasteSub}</small>
+                </div>
+              </div>
 
-               <div className="textarea-container">
-                  <textarea 
-                    placeholder={t.placeholder}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                  ></textarea>
-                  <div className="char-count-figma">{input.length} characters</div>
-               </div>
+              <div className="textarea-container">
+                <textarea
+                  placeholder={t.placeholder}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                />
+                <div className="char-count-figma">{input.length} characters</div>
+              </div>
             </div>
           </div>
 
-          <button className="btn-scan-figma">
-            <FiCpu className="mr-10" /> {t.btnScan}
+          <button className="btn-scan-figma" onClick={handleScan}>
+            <FiCpu className="mr-10" />
+            {loading ? "Scanning..." : t.btnScan}
           </button>
         </div>
 
-        <div className="features-row-figma">
-           <div className="feat-card"><FiCpu className="blue-icon" /> {t.feat1}</div>
-           <div className="feat-card"><FiShield className="blue-icon" /> {t.feat2}</div>
-           <div className="feat-card"><FiCheckCircle className="blue-icon" /> {t.feat3}</div>
+{showResult && (
+  <div className="result-box">
+    <h3>Hasil Scan:</h3>
+    <p>
+      {resultType === "high"
+        ? "⚠️ High Risk (Kemungkinan Penipuan)"
+        : "✅ Aman / Legit"}
+    </p>
+  </div>
+)}
+
+        {/* 🔥 FEATURES (INI YANG KAMU TAMBAHIN) */}
+        <div className="features-grid-row">
+          <div className="feature-small-card">
+            <div className="feat-icon-blue"><FiCpu /></div>
+            <div className="feat-text">
+              <strong>AI-Powered Analysis</strong>
+              <p>{isID ? "Wawasan cerdas untuk CV Anda" : "Smart insights to improve your CV"}</p>
+            </div>
+          </div>
+
+          <div className="feature-small-card">
+            <div className="feat-icon-blue"><FiCheckCircle /></div>
+            <div className="feat-text">
+              <strong>ATS-Friendly Tips</strong>
+              <p>{isID ? "Optimalkan untuk sistem pelacakan" : "Optimize for applicant tracking systems"}</p>
+            </div>
+          </div>
+
+          <div className="feature-small-card">
+            <div className="feat-icon-blue"><FiShield /></div>
+            <div className="feat-text">
+              <strong>Fast & Secure</strong>
+              <p>{isID ? "Data Anda tidak pernah disimpan" : "Your data is never stored"}</p>
+            </div>
+          </div>
         </div>
 
-        <section className="try-examples">
-           <h3 className="section-title-figma">{t.exTitle}</h3>
-           <div className="examples-grid-figma">
-              <div className="ex-card-figma">
-                 <div className="ex-head">{isID ? "Contoh Risiko Tinggi" : "High Risk Example"} <span className="badge-red">{t.exHigh}</span></div>
-                 <p>{isID ? "DARURAT!! Hasilkan $5000/minggu kerja dari rumah! Tanpa pengalaman. Kirim biaya pendaftaran $50..." : "URGENT!! Earn $5000/week working from home! No experience needed. Just send $50 registration fee..."}</p>
-                 <button className="btn-use-ex" onClick={() => handleUseExample("URGENT!! Earn $5000/week...")}>{t.btnUse}</button>
-              </div>
-              <div className="ex-card-figma">
-                 <div className="ex-head">{isID ? "Contoh Aman" : "Safe Example"} <span className="badge-green">{t.exSafe}</span></div>
-                 <p>{isID ? "Senior Software Engineer di TechCorp. Tanggung Jawab: Mengembangkan aplikasi web skala besar..." : "Senior Software Engineer at TechCorp. Responsibilities: Develop scalable web applications..."}</p>
-                 <button className="btn-use-ex" onClick={() => handleUseExample("Senior Software Engineer at TechCorp...")}>{t.btnUse}</button>
-              </div>
-           </div>
-        </section>
+<div className="examples-section">
 
-        <div className="analyze-blue-card">
-           <h4><FiCpu className="blue-icon" /> {t.analyzeTitle}</h4>
-           <div className="analyze-grid-figma">
-              <ul>
-                 <li>• {isID ? "Janji gaji tidak realistis" : "Unrealistic salary promises"}</li>
-                 <li>• {isID ? "Metode kontak mencurigakan" : "Suspicious contact methods"}</li>
-                 <li>• {isID ? "Bahasa mendesak dan taktik tekanan" : "Urgent language and pressure tactics"}</li>
-              </ul>
-              <ul>
-                 <li>• {isID ? "Permintaan pembayaran atau biaya" : "Payment or fee requests"}</li>
-                 <li>• {isID ? "Deskripsi pekerjaan tidak jelas" : "Vague job descriptions"}</li>
-                 <li>• {isID ? "Informasi perusahaan hilang" : "Missing company information"}</li>
-              </ul>
-           </div>
-        </div>
+  <h2 className="examples-title">Try These Examples</h2>
+
+  <div className="examples-grid">
+    {/* HIGH RISK */}
+    <div className="example-card">
+      <div className="example-header">
+        <strong>High Risk Example</strong>
+        <span className="badge red">High Risk</span>
+      </div>
+
+      <p className="example-text">
+        URGENT!!! Earn $5000/week working from home! No experience needed. 
+        Just send $50 registration fee to WhatsApp +1234567890. Get paid daily via Bitcoin!
+      </p>
+
+      <button className="example-btn">Use This Example</button>
+    </div>
+
+    {/* SAFE */}
+    <div className="example-card">
+      <div className="example-header">
+        <strong>Safe Example</strong>
+        <span className="badge green">Safe</span>
+      </div>
+
+      <p className="example-text">
+        Senior Software Engineer at TechCorp  
+        Responsibilities: Develop scalable web applications, collaborate with teams, mentor junior developers.
+      </p>
+
+      <button className="example-btn">Use This Example</button>
+    </div>
+  </div>
+
+  {/* WHAT WE ANALYZE */}
+  <div className="analyze-box">
+    <h3>✨ What We Analyze</h3>
+
+    <div className="analyze-grid">
+      <ul>
+        <li>Unrealistic salary promises</li>
+        <li>Suspicious contact methods</li>
+        <li>Urgent language and pressure tactics</li>
+      </ul>
+
+      <ul>
+        <li>Payment or fee requests</li>
+        <li>Vague job descriptions</li>
+        <li>Missing company information</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
       </div>
     </div>
   );
