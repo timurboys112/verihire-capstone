@@ -1,7 +1,11 @@
 import "./profile.css";
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Profile = ({ user, language }) => {
+  const navigate = useNavigate();
+  const isID = language === 'ID';
+
   // ================= TRANSLATIONS =================
   const content = {
     ID: {
@@ -9,14 +13,8 @@ const Profile = ({ user, language }) => {
       passBtn: "Ganti Password",
       joined: "Bergabung:",
       totalScan: "Total Scan:",
-      historyTitle: "Riwayat Pencarian",
-      historyDesc: "Kelola data hasil deteksi AI kamu di sini.",
-      tableNo: "No",
-      tableName: "Nama Scan",
-      tableType: "Tipe",
-      tableStatus: "Status",
-      tableAction: "Aksi",
-      btnDelete: "Hapus",
+      btnDelete: "HAPUS",
+      btnDetails: "Details",
       btnSave: "Simpan",
       btnCancel: "Batal",
       labelUser: "Username",
@@ -25,24 +23,26 @@ const Profile = ({ user, language }) => {
       labelOldPass: "Password Lama",
       labelNewPass: "Password Baru",
       labelConfirmPass: "Konfirmasi Password",
-      alertOldWrong: "Password lama salah!",
-      alertNoMatch: "Konfirmasi password tidak cocok!",
-      alertMinChar: "Password minimal 6 karakter!",
-      alertSuccess: "Password berhasil diubah!"
+      alertSuccess: "Password berhasil diubah!",
+      jobTitle: "Riwayat Scan Lowongan",
+      cvTitle: "Riwayat Scan CV",
+      colNo: "No. Scan",
+      colContent: "Konten Scan",
+      colType: "Tipe",
+      colDate: "Tanggal",
+      colResult: "Hasil",
+      colAction: "Aksi",
+      colCVName: "Nama File CV",
+      colScore: "Skor CV",
+      colMatch: "Status Kecocokan"
     },
     EN: {
       editBtn: "Edit Profile",
       passBtn: "Change Password",
       joined: "Joined:",
       totalScan: "Total Scan:",
-      historyTitle: "Search History",
-      historyDesc: "Manage your AI detection results here.",
-      tableNo: "No",
-      tableName: "Scan Name",
-      tableType: "Type",
-      tableStatus: "Status",
-      tableAction: "Action",
-      btnDelete: "Delete",
+      btnDelete: "DELETE",
+      btnDetails: "Details",
       btnSave: "Save",
       btnCancel: "Cancel",
       labelUser: "Username",
@@ -51,10 +51,18 @@ const Profile = ({ user, language }) => {
       labelOldPass: "Old Password",
       labelNewPass: "New Password",
       labelConfirmPass: "Confirm Password",
-      alertOldWrong: "Old password is incorrect!",
-      alertNoMatch: "Passwords do not match!",
-      alertMinChar: "Password must be at least 6 characters!",
-      alertSuccess: "Password updated successfully!"
+      alertSuccess: "Password updated successfully!",
+      jobTitle: "Scan Job History",
+      cvTitle: "Scan CV History",
+      colNo: "Scan Number",
+      colContent: "Scan Content",
+      colType: "Scan Type",
+      colDate: "Date",
+      colResult: "Result",
+      colAction: "Action",
+      colCVName: "CV File Name",
+      colScore: "CV Score",
+      colMatch: "CV Match Status"
     }
   };
 
@@ -72,102 +80,64 @@ const Profile = ({ user, language }) => {
   // ================= STATE =================
   const [isEditing, setIsEditing] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-
   const [newUsername, setNewUsername] = useState(user?.username || "");
   const [newEmail, setNewEmail] = useState(user?.email || "");
   const [avatar, setAvatar] = useState(user?.avatar || "");
-
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // ================= DATA =================
-  const history = [
-    { no: 1, nama: "PT.txt", tipe: "Text", status: language === "EN" ? "In Progress" : "Masih Diproses" },
-    { no: 2, nama: "PT.img", tipe: "Image", status: language === "EN" ? "Completed" : "Selesai" },
-    { no: 3, nama: "PT.link", tipe: "Link", status: language === "EN" ? "Completed" : "Selesai" },
+  // ================= DATA DUMMY =================
+  const jobHistory = [
+    { no: 1, content: "PT.txt", type: "Text", date: "1/1/2026", result: isID ? "Risiko Tinggi" : "High Risk" },
+    { no: 2, content: "PT.img", type: "Image", date: "2/1/2026", result: isID ? "Mencurigakan" : "Suspicious" },
+    { no: 3, content: "PT.link", type: "Link", date: "2/1/2026", result: "Legit" },
   ];
 
-  const username = user?.username || "No Name";
-  const email = user?.email || "-";
-  const joinDate = user?.createdAt || (language === "EN" ? "Just now" : "Baru saja");
+  const cvHistory = [
+    { no: 1, name: "CV_Izza_2026", date: "9/5/2026", score: 91, status: isID ? "Sangat Baik" : "Excellent" },
+    { no: 2, name: "CV_Izza_2025", date: "9/5/2025", score: 70, status: isID ? "Tinggi" : "High" },
+  ];
+
+  const username = user?.username || "Anindya Chandra";
+  const email = user?.email || "anindya.chandra@email.com";
+  const joinDate = user?.createdAt || (isID ? "Baru saja" : "Just now");
   const avatarLetter = username.charAt(0).toUpperCase();
 
   // ================= HANDLERS =================
   const handleSave = () => {
     const updatedUser = { ...user, username: newUsername, email: newEmail, avatar: avatar };
     localStorage.setItem("user", JSON.stringify(updatedUser));
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    const updatedUsers = users.map((u) => u.id === user.id ? updatedUser : u);
-    localStorage.setItem("users", JSON.stringify(updatedUsers));
     window.location.reload();
-  };
-
-  const handleChangePassword = () => {
-    const currentUser = JSON.parse(localStorage.getItem("user"));
-    if (oldPassword !== currentUser.password) { alert(t.alertOldWrong); return; }
-    if (newPassword !== confirmPassword) { alert(t.alertNoMatch); return; }
-    if (newPassword.length < 6) { alert(t.alertMinChar); return; }
-
-    const updatedUser = { ...currentUser, password: newPassword };
-    localStorage.setItem("user", JSON.stringify(updatedUser));
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    const updatedUsers = users.map((u) => u.id === currentUser.id ? updatedUser : u);
-    localStorage.setItem("users", JSON.stringify(updatedUsers));
-
-    alert(t.alertSuccess);
-    setOldPassword(""); setNewPassword(""); setConfirmPassword("");
-    setIsChangingPassword(false);
   };
 
   return (
     <div className="profile-wrapper-final">
       <div className="container">
         
-        {/* SECTION: PROFILE CARD */}
+        {/* SECTION 1: PROFILE CARD */}
         {!isChangingPassword && (
           <section className="user-card-final">
-            
-            {/* KIRI: AVATAR SIDE */}
             <div className="avatar-side-final">
               <div className="avatar-box-final">
-                {avatar ? (
-                  <img src={avatar} alt="avatar" className="avatar-img" />
-                ) : (
-                  <span className="avatar-letter">{avatarLetter}</span>
-                )}
+                {avatar ? <img src={avatar} alt="avatar" className="avatar-img" /> : <span className="avatar-letter">{avatarLetter}</span>}
               </div>
-              
               {isEditing && (
-                <>
-                  <p className="label-small">{t.labelAvatar}</p>
-                  <div className="avatar-picker-grid">
-                    {avatarOptions.map((img, i) => (
-                      <div 
-                        key={i} 
-                        className={`avatar-option bg${i + 1} ${avatar === img ? "active" : ""}`}
-                        onClick={() => setAvatar(img)}
-                      >
-                        <img src={img} alt="option" />
-                      </div>
-                    ))}
-                  </div>
-                </>
+                <div className="avatar-picker-grid">
+                  {avatarOptions.map((img, i) => (
+                    <div key={i} className={`avatar-option bg${i + 1} ${avatar === img ? "active" : ""}`} onClick={() => setAvatar(img)}>
+                      <img src={img} alt="option" />
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
 
-            {/* KANAN: INFO / EDIT SIDE */}
             <div className="profile-form-side">
               {isEditing ? (
                 <div className="edit-form-final">
-                  <div className="form-group-final">
-                    <label>{t.labelUser}</label>
-                    <input value={newUsername} onChange={(e) => setNewUsername(e.target.value)} />
-                  </div>
-                  <div className="form-group-final">
-                    <label>{t.labelEmail}</label>
-                    <input value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
-                  </div>
+                  <div className="form-group-final"><label>{t.labelUser}</label><input value={newUsername} onChange={(e) => setNewUsername(e.target.value)} /></div>
+                  <div className="form-group-final"><label>{t.labelEmail}</label><input value={newEmail} onChange={(e) => setNewEmail(e.target.value)} /></div>
                   <div className="action-buttons-final">
                     <button onClick={handleSave} className="btn-primary-final">{t.btnSave}</button>
                     <button onClick={() => setIsEditing(false)} className="btn-secondary-final">{t.btnCancel}</button>
@@ -180,7 +150,7 @@ const Profile = ({ user, language }) => {
                   <div className="stats-row-final">
                     <span><strong>{t.joined}</strong> {joinDate}</span>
                     <span className="dot-separator">•</span>
-                    <span><strong>{t.totalScan}</strong> {history.length}</span>
+                    <span><strong>{t.totalScan}</strong> {jobHistory.length + cvHistory.length}</span>
                   </div>
                   <div className="action-buttons-final">
                     <button onClick={() => setIsEditing(true)} className="btn-primary-final">{t.editBtn}</button>
@@ -192,26 +162,17 @@ const Profile = ({ user, language }) => {
           </section>
         )}
 
-        {/* SECTION: CHANGE PASSWORD */}
+        {/* SECTION 2: CHANGE PASSWORD */}
         {isChangingPassword && (
           <section className="user-card-final">
             <div className="profile-form-side" style={{ width: '100%' }}>
-              <h2>{t.passBtn}</h2>
+              <h2 className="figma-blue-title">{t.passBtn}</h2>
               <div className="edit-form-final" style={{ gridTemplateColumns: '1fr' }}>
-                <div className="form-group-final">
-                  <label>{t.labelOldPass}</label>
-                  <input type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} />
-                </div>
-                <div className="form-group-final">
-                  <label>{t.labelNewPass}</label>
-                  <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-                </div>
-                <div className="form-group-final">
-                  <label>{t.labelConfirmPass}</label>
-                  <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-                </div>
+                <div className="form-group-final"><label>{t.labelOldPass}</label><input type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} /></div>
+                <div className="form-group-final"><label>{t.labelNewPass}</label><input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} /></div>
+                <div className="form-group-final"><label>{t.labelConfirmPass}</label><input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} /></div>
                 <div className="action-buttons-final">
-                  <button onClick={handleChangePassword} className="btn-primary-final">{t.btnSave}</button>
+                  <button onClick={() => {alert(t.alertSuccess); setIsChangingPassword(false)}} className="btn-primary-final">{t.btnSave}</button>
                   <button onClick={() => setIsChangingPassword(false)} className="btn-secondary-final">{t.btnCancel}</button>
                 </div>
               </div>
@@ -219,42 +180,81 @@ const Profile = ({ user, language }) => {
           </section>
         )}
 
-        {/* SECTION: HISTORY */}
+        {/* SECTION 3: HISTORY - FIGMA SYNC */}
         {!isChangingPassword && (
-          <section className="history-card-final">
-            <div className="history-header-final">
-              <h2>{t.historyTitle}</h2>
-              <p>{t.historyDesc}</p>
-            </div>
-            <div className="table-container-final">
-              <table className="table-final">
-                <thead>
-                  <tr>
-                    <th>{t.tableNo}</th>
-                    <th>{t.tableName}</th>
-                    <th>{t.tableType}</th>
-                    <th>{t.tableStatus}</th>
-                    <th>{t.tableAction}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {history.map((item, i) => (
-                    <tr key={i}>
-                      <td>{item.no}</td>
-                      <td className="bold-text">{item.nama}</td>
-                      <td><span className="status-badge-final process" style={{ background: '#E0F2F1', color: '#00796B'}}>{item.tipe}</span></td>
-                      <td>
-                        <span className={`status-badge-final ${item.status === "Selesai" || item.status === "Completed" ? "done" : "process"}`}>
-                          {item.status}
-                        </span>
-                      </td>
-                      <td><button className="btn-delete-final">{t.btnDelete}</button></td>
+          <div className="history-wrapper-figma">
+            {/* JOB HISTORY */}
+            <section className="history-card-final">
+              <h2 className="figma-blue-title">{t.jobTitle}</h2>
+              <div className="table-container-final">
+                <table className="table-final figma-style">
+                  <thead>
+                    <tr>
+                      <th>{t.colNo}</th>
+                      <th>{t.colContent}</th>
+                      <th>{t.colType}</th>
+                      <th>{t.colDate}</th>
+                      <th>{t.colResult}</th>
+                      <th>{t.colAction}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
+                  </thead>
+                  <tbody>
+                    {jobHistory.map((item, i) => (
+                      <tr key={i}>
+                        <td>{item.no}</td>
+                        <td className="bold-text">{item.content}</td>
+                        <td>{item.type}</td>
+                        <td>{item.date}</td>
+                        <td className={`res-col ${item.result.toLowerCase().includes('risk') || item.result.includes('Risiko') ? 'high-risk' : 'legit'}`}>{item.result}</td>
+                        <td>
+                          <div className="action-flex">
+                            <button className="btn-details-blue" onClick={() => navigate('/scan')}>{t.btnDetails}</button>
+                            <button className="btn-delete-figma">{t.btnDelete}</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* CV HISTORY */}
+            <section className="history-card-final">
+              <h2 className="figma-blue-title">{t.cvTitle}</h2>
+              <div className="table-container-final">
+                <table className="table-final figma-style">
+                  <thead>
+                    <tr>
+                      <th>{t.colNo}</th>
+                      <th>{t.colCVName}</th>
+                      <th>{t.colDate}</th>
+                      <th>{t.colScore}</th>
+                      <th>{t.colMatch}</th>
+                      <th>{t.colAction}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cvHistory.map((cv, i) => (
+                      <tr key={i}>
+                        <td>{cv.no}</td>
+                        <td className="bold-text">{cv.name}</td>
+                        <td>{cv.date}</td>
+                        <td className="score-text">{cv.score}</td>
+                        <td>{cv.status}</td>
+                        <td>
+                          <div className="action-flex">
+                            <button className="btn-details-blue" onClick={() => navigate('/scan-cv')}>{t.btnDetails}</button>
+                            <button className="btn-delete-figma">{t.btnDelete}</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
         )}
       </div>
     </div>
