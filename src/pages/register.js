@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { authService } from "../services/authService";
 import "./register.css";
 
 // IMPORT ICON
@@ -19,7 +20,7 @@ function Register({ language }) {
   
   const navigate = useNavigate();
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     if (!username || !email || !password || !confirmPassword) {
       alert(language === "ID" ? "Isi semua field!" : "Fill all fields!");
@@ -30,17 +31,22 @@ function Register({ language }) {
       return;
     }
 
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    if (users.find((user) => user.email === email)) {
-      alert(language === "ID" ? "Email sudah terdaftar!" : "Email already registered!");
-      return;
-    }
+    try {
+      const response = await authService.register({ 
+        username, 
+        email, 
+        password 
+      });
 
-    const newUser = { id: Date.now(), username, email, password, avatar: "" };
-    users.push(newUser);
-    localStorage.setItem("users", JSON.stringify(users));
-    alert(language === "ID" ? "Berhasil daftar!" : "Registration successful!");
-    navigate("/login");
+      if (response.success) {
+        alert(language === "ID" ? "Berhasil daftar!" : "Registration successful!");
+        navigate("/login");
+      }
+    } catch (error) {
+      console.error("Register Error:", error);
+      const apiMessage = error.response?.data?.message || (language === "ID" ? "Terjadi kesalahan pendaftaran!" : "Registration failed!");
+      alert(apiMessage);
+    }
   };
 
   return (

@@ -7,15 +7,16 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Scan from './pages/Scan'; 
 import Profile from './pages/Profile';
-import Login from './pages/login';
-import Register from './pages/register';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword'; 
+import ResetPassword from './pages/ResetPassword';
 import Chatbot from './components/Chatbot';
 import ScanCV from './pages/ScanCV';
 
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
-function App() {
+function MainApp() {
   const [user, setUser] = useState(null);
   const [language, setLanguage] = useState(localStorage.getItem("appLang") || 'ID');
 
@@ -31,9 +32,15 @@ function App() {
     localStorage.setItem("appLang", lang);
   };
 
+  const location = useLocation();
+  const isAuthPage = 
+    location.pathname === '/login' ||
+    location.pathname === '/register' ||
+    location.pathname === '/forgot-password' ||
+    location.pathname.startsWith('/reset-password');
+
   return (
-    <BrowserRouter>
-      <div className="App">
+    <div className="App">
         <Navbar 
           user={user} 
           setUser={setUser}
@@ -55,6 +62,7 @@ function App() {
             />
             <Route path="/register" element={<Register language={language} />} />
             <Route path="/forgot-password" element={<ForgotPassword language={language} />} />
+            <Route path="/reset-password/:token" element={<ResetPassword language={language} />} />
 
             {/* ✅ PROTECTED: Profile */}
             <Route 
@@ -71,8 +79,15 @@ function App() {
           </Routes>
         </div>
 
-        <Chatbot language={language} />
+        {!isAuthPage && <Chatbot language={language} />}
       </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <MainApp />
     </BrowserRouter>
   );
 }

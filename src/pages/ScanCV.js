@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { jsPDF } from "jspdf";
+import { aiService } from "../services/aiService";
 import { 
   FiUploadCloud, FiFileText, FiCheckCircle, FiCpu, 
-  FiShield, FiSearch, FiX, FiCheck, FiTarget, FiInfo, FiBriefcase 
+  FiShield, FiSearch, FiX, FiCheck, FiInfo, FiBriefcase 
 } from 'react-icons/fi';
-import './ScanCV.css';
+import './scanCV.css';
 
 function ScanCV({ language, user }) {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -34,56 +36,75 @@ function ScanCV({ language, user }) {
     howItWorks: isID ? "Cara Kerja" : "How It Works"
   };
 
-  const handleScan = () => {
-    if (!pastedText && !selectedFile) {
-      alert(isID ? "Tolong masukkan CV atau upload file!" : "Please provide CV text or upload a file!");
+  const handleScan = async () => {
+    if (!selectedFile) {
+      alert(isID ? "Tolong upload file CV Anda!" : "Please upload your CV file!");
       return;
     }
     setLoading(true);
 
-    setTimeout(() => {
-      const text = pastedText.toLowerCase();
-      let res = {};
-
-      if (text.includes("john") || text.includes("senior")) {
-        res = {
-          score: 95, status: "excellent",
-          matchTitle: isID ? "Sangat Cocok" : "Excellent Match",
-          matchDesc: isID ? "CV Anda beneran mantap buat posisi ini!" : "Your CV is perfectly aligned for this role!",
-          advice: isID ? "Sempurna! Tinggal lamar aja ini mah." : "Perfect! Just go ahead and apply.",
-          strengths: ["Expert React & Node.js", "5+ Years Experience", "System Design"],
-          weaknesses: [isID ? "Tidak ada" : "None"],
-          rephrase: ["Optimize keywords for ATS", "Use impact-driven metrics"],
-          jobs: ["Lead Engineer", "Solutions Architect"]
-        };
-      } else if (text.includes("budi") || text.includes("chef") || text.includes("culinary")) {
-        res = {
-          score: 20, status: "low",
-          matchTitle: isID ? "Kurang Cocok" : "Low Match",
-          matchDesc: isID ? "Bidang kuliner agak jauh nih dari target IT." : "Culinary background doesn't match IT targets.",
-          advice: isID ? "Coba ambil bootcamp IT dulu kalau mau pindah haluan." : "Try taking IT bootcamps if you want to switch careers.",
-          strengths: ["Management Skills", "Fast Learner"],
-          weaknesses: ["No Technical IT Experience", "Irrelevant Industry"],
-          rephrase: ["Focus on transferable soft skills", "Add IT certifications"],
-          jobs: ["Kitchen Manager", "Operations Lead"]
-        };
-      } else {
-        res = {
-          score: 55, status: "medium",
-          matchTitle: isID ? "Kecocokan Menengah" : "Medium Match",
-          matchDesc: isID ? "CV Anda oke, tapi masih ada yang kurang dikit." : "Your CV is good, but needs more polish.",
-          advice: isID ? "Tambahkan detail pencapaian yang ada angkanya." : "Add quantifiable achievements with numbers.",
-          strengths: ["Basic Tech Stack", "Clean Layout"],
-          weaknesses: ["No Cloud Platform exp", "Missing Scrum keywords"],
-          rephrase: ["Use 'Implemented' instead of 'Made'", "Add action verbs"],
-          jobs: ["Frontend Developer", "Web Programmer"]
-        };
+    try {
+      const formData = new FormData();
+      formData.append("cv", selectedFile);
+      if (targetJob) {
+        formData.append("jobTarget", targetJob);
       }
+
+      const response = await aiService.analyzeCV(formData);
       
-      setDynamicData(res);
-      setShowModal(true);
-      setLoading(false);
-    }, 1200);
+      if (response.success) {
+         const apidata = response.data;
+         const result = {
+           score: apidata.analysis.cvMatchScore,
+           status: apidata.analysis.matchStatus.toLowerCase(),
+           matchTitle: "Scan Success",
+           matchDesc: "Analysis completed successfully.",
+           strengths: apidata.analysis.strengths || [],
+           weaknesses: apidata.analysis.weaknesses || [],
+           advice: apidata.analysis.improvementAdvice?.join(" ") || "No advice.",
+           rephrase: apidata.analysis.rephraseSuggestions?.map(r => r.improved) || [],
+           jobs: apidata.analysis.jobRecommendations || [],
+           improvedCvText: apidata.improvedCvText
+         };
+
+         setDynamicData(result);
+         setShowModal(true);
+      }
+    } catch (error) {
+       console.error("Upload error", error);
+       alert(error.response?.data?.message || "Scan failed.");
+    } finally {
+       setLoading(false);
+    }
+  };
+
+  const handleDownloadPDF = () => {
+    if (!dynamicData || !dynamicData.improvedCvText) {
+      alert("Teks CV tidak ditemukan untuk diunduh.");
+      return;
+    }
+    
+    const safeText = String(dynamicData.improvedCvText).replace(/[^\x20-\x7E\n\r]/g, "");
+    
+    const doc = new jsPDF();
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("Improved CV Output", 15, 20);
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    const textLines = doc.splitTextToSize(safeText, 180);
+    
+    let yIdx = 30;
+    textLines.forEach(line => {
+      if (yIdx > 280) {
+        doc.addPage();
+        yIdx = 20;
+      }
+      doc.text(line, 15, yIdx);
+      yIdx += 6;
+    });
+    doc.save("Improved_CV_Result.pdf");
   };
 
   return (
@@ -113,6 +134,26 @@ function ScanCV({ language, user }) {
                   </div>
                 </div>
               </div>
+
+              {dynamicData.improvedCvText && (
+                <div style={{ marginTop: "15px", marginBottom: "15px", display: "flex", justifyContent: "center" }}>
+                  <button 
+                    onClick={handleDownloadPDF} 
+                    style={{ 
+                      padding: "10px 20px", 
+                      cursor: "pointer", 
+                      border: "none", 
+                      borderRadius: "8px", 
+                      background: "#4f46e5", 
+                      color: "#fff", 
+                      fontWeight: "bold",
+                      fontSize: "14px",
+                      boxShadow: "0 4px 6px -1px rgba(79, 70, 229, 0.2)"
+                    }}>
+                     Download Improved CV (PDF)
+                  </button>
+                </div>
+              )}
 
               <div className="cv-result-grid">
                 <div className="cv-result-item match-accent">

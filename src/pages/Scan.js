@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fi';
 import { FaWhatsapp, FaTelegramPlane, FaYoutube } from 'react-icons/fa';
 import './Scan.css';
+import { aiService } from '../services/aiService';
 
 const Scan = ({ language }) => {
   const [input, setInput] = useState("");
@@ -48,20 +49,42 @@ const Scan = ({ language }) => {
     { label: "Other", icon: <FiMoreHorizontal color="#64748B" /> },
   ];
 
-  const handleScan = () => {
+  const handleScan = async () => {
     if (!input && !selectedFile) {
       alert(isID ? "Masukkan teks atau upload file dulu!" : "Please provide text or upload a file first!");
       return;
     }
     setLoading(true);
-    setTimeout(() => {
-      const lowerInput = input.toLowerCase();
-      if (lowerInput.includes("urgent") || lowerInput.includes("$5000")) setResultType("high");
-      else if (lowerInput.includes("senior")) setResultType("legit");
-      else setResultType("suspicious");
-      setShowResult(true);
+    try {
+      let response;
+      const finalSource = fileSource.label ? fileSource.label.toLowerCase() : 'other';
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("image", selectedFile);
+        formData.append("source", finalSource);
+        response = await aiService.detectJob(formData, true);
+      } else {
+        response = await aiService.detectJob({ content: input, source: finalSource }, false);
+      }
+
+      if (response && response.success) {
+        const verdict = response.data?.analysis?.verdict?.toLowerCase() || '';
+        if (verdict.includes("legit") || verdict.includes("aman") || verdict.includes("asli") || verdict.includes("low risk")) {
+          setResultType("legit");
+        } else if (verdict.includes("suspicious") || verdict.includes("mencurigakan") || verdict.includes("medium risk")) {
+          setResultType("suspicious");
+        } else {
+          setResultType("high");
+        }
+        setShowResult(true);
+      }
+    } catch (error) {
+      console.error(error);
+      const errMsg = error.response?.data?.message || (isID ? "Gagal melakukan scan. Coba lagi." : "Failed to scan. Please try again.");
+      alert(errMsg);
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   const handleUseExample = (text) => {

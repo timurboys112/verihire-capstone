@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { authService } from "../services/authService";
 import content from "../content";
 import "./login.css"; 
 
@@ -18,23 +19,36 @@ function Login({ setUser, language }) {
 
   const text = content[language].login;
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     if (!email || !password) {
       alert(language === "ID" ? "Isi semua field!" : "Fill all fields!");
       return;
     }
 
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    const user = users.find((u) => u.email === email && u.password === password);
-
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("isLoggedIn", "true");
-      setUser(user);
-      navigate("/home");
-    } else {
-      alert(language === "ID" ? "Email atau password salah!" : "Invalid email or password!");
+    try {
+      const response = await authService.login({ email, password });
+      
+      if (response.success && response.token) {
+        localStorage.setItem("token", response.token);
+        localStorage.setItem("isLoggedIn", "true");
+        
+        try {
+          const userData = await authService.getMe();
+          if (userData && userData.data && userData.data.user) {
+            localStorage.setItem("user", JSON.stringify(userData.data.user));
+            setUser(userData.data.user);
+          }
+        } catch(meErr) {
+          console.error("Failed to fetch user data", meErr);
+        }
+        
+        navigate("/home");
+      }
+    } catch (error) {
+      console.error("Login Error:", error);
+      const apiMessage = error.response?.data?.message || (language === "ID" ? "Email atau password salah!" : "Invalid email or password!");
+      alert(apiMessage);
     }
   };
 

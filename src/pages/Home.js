@@ -1,10 +1,50 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { FiSearch, FiFileText, FiShield, FiZap, FiTarget } from "react-icons/fi";
+import { statsService } from '../services/statsService';
 
 const Home = ({ language, user }) => { // ✅ Terima prop user
   const navigate = useNavigate();
   const isID = language === 'ID';
+
+  const [statsData, setStatsData] = useState({
+    totalFake: "0",
+    riskPercent: "0%",
+    topSource: "N/A",
+    cvAnalyzed: "0"
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await statsService.getPublicStats();
+        const data = response.data || response; 
+
+        if (data) {
+          const totalFake = data.totalFake || 0;
+          let riskPrc = "0%";
+          if (data.totalScans && data.totalScans > 0) {
+             riskPrc = Math.round((totalFake / data.totalScans) * 100) + "%";
+          }
+          let top = "N/A";
+          if (data.topSource) {
+             top = data.topSource.charAt(0).toUpperCase() + data.topSource.slice(1);
+          }
+          
+          setStatsData({
+            totalFake: totalFake.toLocaleString() + (totalFake > 0 ? "+" : ""),
+            riskPercent: riskPrc,
+            topSource: top,
+            cvAnalyzed: (data.totalCvAnalyzed || 0).toLocaleString() + (data.totalCvAnalyzed > 0 ? "+" : "")
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch public stats", error);
+      }
+    };
+    
+    fetchStats();
+  }, []);
 
   const t = {
     badge: isID ? "Verifikasi Lowongan Kerja AI" : "Job Verification AI",
@@ -17,9 +57,10 @@ const Home = ({ language, user }) => { // ✅ Terima prop user
     btnJob: isID ? "Scan Lowongan Sekarang" : "Scan Job Now",
     btnCV: isID ? "Scan CV Anda Sekarang" : "Scan your CV Now",
     stats: [
-      { val: "1,200+", lab: isID ? "Loker Palsu Terdeteksi" : "Fake Jobs Detected", icon: "🚫", color: "red" },
-      { val: "80%", lab: isID ? "Risiko Tinggi Ditemukan" : "High Risk Found", icon: "📈", color: "orange" },
-      { val: "Telegram", lab: isID ? "Sumber Terbanyak" : "Top Source Platform", icon: "🌐", color: "blue" }
+      { val: statsData.totalFake, lab: isID ? "Loker Palsu Terdeteksi" : "Fake Jobs Detected", icon: "🚫", color: "red" },
+      { val: statsData.riskPercent, lab: isID ? "Risiko Tinggi Ditemukan" : "High Risk Found", icon: "📈", color: "orange" },
+      { val: statsData.topSource, lab: isID ? "Sumber Terbanyak" : "Top Source Platform", icon: "🌐", color: "blue" },
+      { val: statsData.cvAnalyzed, lab: isID ? "Total CV Dianalisis" : "Total CVs Analyzed", icon: "📑", color: "green" }
     ],
     whyTitle: "Why Choose VeriHire?",
     whyDesc: isID ? "Teknologi AI canggih kami melindungi pencari kerja dari postingan palsu" : "Our advanced AI technology protects job seekers from fraudulent listings",
@@ -58,7 +99,7 @@ const Home = ({ language, user }) => { // ✅ Terima prop user
             </button>
           </div>
 
-          <div className="stats-container-v3">
+          <div className="stats-container-v3" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
             {t.stats.map((s, i) => (
               <div key={i} className={`stat-card-v3 ${s.color}`}>
                 <div className="stat-icon-circle">{s.icon}</div>

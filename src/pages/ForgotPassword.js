@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FiMail, FiArrowLeft } from "react-icons/fi";
+import { authService } from "../services/authService";
 import "./login.css"; // Kita pakai CSS yang sama biar rapi
 
 // IMPORT GAMBAR DARI ASSETS
@@ -9,26 +10,30 @@ import illuImg from "../assets/illustration-login.png";
 
 function ForgotPassword({ language }) {
   const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleReset = (e) => {
+  const handleReset = async (e) => {
     e.preventDefault();
     if (!email) {
       alert(language === "ID" ? "Masukkan email anda!" : "Please enter your email!");
       return;
     }
 
-    // SIMULASI KIRIM KE BACKEND
-    console.log("Request reset password untuk:", email);
-    
-    alert(
-      language === "ID" 
-        ? "Instruksi reset password telah dikirim ke email anda (jika terdaftar)." 
-        : "Reset instructions have been sent to your email (if registered)."
-    );
-    
-    // Kembalikan ke login setelah sukses
-    navigate("/login");
+    setIsLoading(true);
+    try {
+      const res = await authService.forgotPassword({ email });
+      if (res.success || res.message) {
+        alert(res.message || (language === "ID" 
+          ? "Instruksi reset password telah dikirim ke email anda." 
+          : "Reset instructions have been sent to your email."));
+        navigate("/login");
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || (language === "ID" ? "Gagal mengirim email reset." : "Failed to send reset email."));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -60,8 +65,10 @@ function ForgotPassword({ language }) {
               </div>
             </div>
 
-            <button type="submit" className="btn-auth-primary">
-              {language === "ID" ? "Kirim Instruksi" : "Send Instructions"}
+            <button type="submit" className="btn-auth-primary" disabled={isLoading}>
+              {isLoading 
+                ? (language === "ID" ? "Mengirim..." : "Sending...") 
+                : (language === "ID" ? "Kirim Instruksi" : "Send Instructions")}
             </button>
           </form>
 

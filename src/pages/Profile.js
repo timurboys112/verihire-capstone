@@ -1,6 +1,11 @@
 import "./profile.css";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { authService } from "../services/authService";
+import { historyService } from "../services/historyService";
+import { statsService } from "../services/statsService";
 import { useNavigate } from "react-router-dom";
+import { FiEye, FiEyeOff, FiLayers, FiShield, FiFilePlus, FiActivity, FiStar, FiDownload, FiChevronUp, FiChevronDown } from 'react-icons/fi';
+import { jsPDF } from "jspdf";
 
 const Profile = ({ user, language }) => {
   const navigate = useNavigate();
@@ -87,29 +92,244 @@ const Profile = ({ user, language }) => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // ================= DATA DUMMY =================
-  const jobHistory = [
-    { no: 1, content: "PT.txt", type: "Text", date: "1/1/2026", result: isID ? "Risiko Tinggi" : "High Risk" },
-    { no: 2, content: "PT.img", type: "Image", date: "2/1/2026", result: isID ? "Mencurigakan" : "Suspicious" },
-    { no: 3, content: "PT.link", type: "Link", date: "2/1/2026", result: "Legit" },
-  ];
+  const [scanData, setScanData] = useState([]);
+  const [cvData, setCvData] = useState([]);
 
-  const cvHistory = [
-    { no: 1, name: "CV_Izza_2026", date: "9/5/2026", score: 91, status: isID ? "Sangat Baik" : "Excellent" },
-    { no: 2, name: "CV_Izza_2025", date: "9/5/2025", score: 70, status: isID ? "Tinggi" : "High" },
-  ];
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  const [selectedCvDetail, setSelectedCvDetail] = useState(null);
+  const [selectedJobDetail, setSelectedJobDetail] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  
+  const [jobSortConfig, setJobSortConfig] = useState({ key: 'date', direction: 'desc' });
+  const [cvSortConfig, setCvSortConfig] = useState({ key: 'date', direction: 'desc' });
+  const [userStats, setUserStats] = useState({
+     jobTotal: 0,
+     scamsAvoided: 0,
+     cvTotal: 0,
+     avgCvScore: 0,
+     bestCvScore: 0
+  });
 
-  const username = user?.username || "Anindya Chandra";
-  const email = user?.email || "anindya.chandra@email.com";
-  const joinDate = user?.createdAt || (isID ? "Baru saja" : "Just now");
+  const [displayUser, setDisplayUser] = useState(user || {});
+
+  useEffect(() => {
+    if (user) setDisplayUser(user);
+  }, [user]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const fetchHistory = async () => {
+    try {
+      const statsRes = await statsService.getUserStats();
+      if (statsRes.success || statsRes.data) {
+         const d = statsRes.data || statsRes;
+         setUserStats({
+           jobTotal: d.jobTotal || 0,
+           scamsAvoided: d.scamsAvoided || 0,
+           cvTotal: d.cvTotal || 0,
+           avgCvScore: d.avgCvScore || 0,
+           bestCvScore: d.bestCvScore || 0
+         });
+      }
+
+      const scanRes = await historyService.getScanHistory(1, 50);
+      if (scanRes.success) {
+        setScanData(scanRes.data || []);
+      }
+      const cvRes = await historyService.getCvHistory(1, 50);
+      if (cvRes.success) {
+        setCvData(cvRes.data || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch history/stats", error);
+    }
+  };
+
+  const username = displayUser?.username || "Anindya Chandra";
+  const email = displayUser?.email || "anindya.chandra@email.com";
+  const joinDate = displayUser?.createdAt ? new Date(displayUser.createdAt).toLocaleDateString() : (isID ? "Baru saja" : "Just now");
   const avatarLetter = username.charAt(0).toUpperCase();
 
   // ================= HANDLERS =================
-  const handleSave = () => {
-    const updatedUser = { ...user, username: newUsername, email: newEmail, avatar: avatar };
-    localStorage.setItem("user", JSON.stringify(updatedUser));
-    window.location.reload();
+  const handleSave = async () => {
+    if (avatar && avatar.length > 2000000) {
+      alert(isID ? "Ukuran gambar avatar terlalu besar! Maksimal 2MB." : "Avatar image is too large! Maximum allowed is 2MB.");
+      return;
+    }
+
+    try {
+      const response = await authService.updateProfile({ username: newUsername, email: newEmail, avatar });
+      if (response.success) {
+        const updatedUser = response.data?.user || response.data || {};
+        const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+        const newUser = { 
+           ...currentUser, 
+           username: newUsername, 
+           email: newEmail, 
+           avatar, 
+           ...updatedUser 
+        };
+        localStorage.setItem("user", JSON.stringify(newUser));
+        setDisplayUser(newUser);
+        setIsEditing(false);
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || "Update profile failed");
+    }
   };
+
+  const handleUpdatePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      alert(isID ? "Password baru dan konfirmasi tidak cocok!" : "Passwords do not match");
+      return;
+    }
+    
+    try {
+      const res = await authService.updatePassword({ currentPassword: oldPassword, newPassword });
+      if (res.success) {
+        alert(isID ? "Password berhasil diubah. Silakan login kembali." : "Password updated successfully. Please login again.");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate('/login');
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to update password");
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    try {
+      if (deleteTarget.type === 'job') {
+        await historyService.deleteScan(deleteTarget.id);
+        setScanData(prev => prev.filter(item => item._id !== deleteTarget.id));
+      } else if (deleteTarget.type === 'cv') {
+        await historyService.deleteCv(deleteTarget.id);
+        setCvData(prev => prev.filter(item => item._id !== deleteTarget.id));
+      }
+    } catch (error) {
+      alert("Delete failed");
+    } finally {
+      setDeleteTarget(null);
+    }
+  };
+
+  const handleViewCvDetail = async (id) => {
+    try {
+      const res = await historyService.getCvDetail(id);
+      if (res.success) {
+        setSelectedCvDetail(res.data);
+      }
+    } catch (error) {
+      alert("Failed to get CV detail");
+    }
+  };
+
+  const handleViewJobDetail = async (id) => {
+    try {
+      const res = await historyService.getScanDetail(id);
+      if (res.success) {
+        setSelectedJobDetail(res.data);
+      }
+    } catch (error) {
+      alert("Failed to get Job Scan detail");
+    }
+  };
+
+  const handleDownloadHistoryPDF = () => {
+    if (!selectedCvDetail || !selectedCvDetail.improvedCvText) {
+      alert(isID ? "Teks CV tidak ditemukan!" : "CV text not found for download.");
+      return;
+    }
+    
+    const safeText = String(selectedCvDetail.improvedCvText).replace(/[^\x20-\x7E\n\r]/g, "");
+    
+    const doc = new jsPDF();
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("Improved CV Output", 15, 20);
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    const textLines = doc.splitTextToSize(safeText, 180);
+    
+    let yIdx = 30;
+    textLines.forEach(line => {
+      if (yIdx > 280) {
+        doc.addPage();
+        yIdx = 20;
+      }
+      doc.text(line, 15, yIdx);
+      yIdx += 6;
+    });
+    doc.save("History_Improved_CV.pdf");
+  };
+
+  const handleJobSort = (key) => {
+    let direction = 'desc';
+    if (jobSortConfig.key === key && jobSortConfig.direction === 'desc') {
+      direction = 'asc';
+    }
+    setJobSortConfig({ key, direction });
+  };
+
+  const handleCvSort = (key) => {
+    let direction = 'desc';
+    if (cvSortConfig.key === key && cvSortConfig.direction === 'desc') {
+      direction = 'asc';
+    }
+    setCvSortConfig({ key, direction });
+  };
+
+  const renderSortIcon = (config, key) => {
+    if (config.key !== key) {
+      return <FiChevronDown style={{ color: '#888', marginLeft: '4px', opacity: 0.5 }} />;
+    }
+    return config.direction === 'desc' 
+      ? <FiChevronDown style={{ marginLeft: '4px' }} /> 
+      : <FiChevronUp style={{ marginLeft: '4px' }} />;
+  };
+
+  const sortedScanData = [...scanData].sort((a, b) => {
+    let valA, valB;
+    if (jobSortConfig.key === 'result') {
+      valA = (a.analysis?.verdict || "").toLowerCase();
+      valB = (b.analysis?.verdict || "").toLowerCase();
+    } else {
+      // default to date
+      valA = new Date(a.createdAt);
+      valB = new Date(b.createdAt);
+    }
+
+    if (valA < valB) return jobSortConfig.direction === 'asc' ? -1 : 1;
+    if (valA > valB) return jobSortConfig.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const sortedCvData = [...cvData].sort((a, b) => {
+    let valA, valB;
+    if (cvSortConfig.key === 'score') {
+      valA = a.analysis?.cvMatchScore || 0;
+      valB = b.analysis?.cvMatchScore || 0;
+    } else if (cvSortConfig.key === 'status') {
+      valA = (a.analysis?.matchStatus || "").toLowerCase();
+      valB = (b.analysis?.matchStatus || "").toLowerCase();
+    } else {
+      // default to date
+      valA = new Date(a.createdAt);
+      valB = new Date(b.createdAt);
+    }
+
+    if (valA < valB) return cvSortConfig.direction === 'asc' ? -1 : 1;
+    if (valA > valB) return cvSortConfig.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
 
   return (
     <div className="profile-wrapper-final">
@@ -123,10 +343,21 @@ const Profile = ({ user, language }) => {
                 {avatar ? <img src={avatar} alt="avatar" className="avatar-img" /> : <span className="avatar-letter">{avatarLetter}</span>}
               </div>
               {isEditing && (
-                <div className="avatar-picker-grid">
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', marginTop: '15px' }}>
                   {avatarOptions.map((img, i) => (
-                    <div key={i} className={`avatar-option bg${i + 1} ${avatar === img ? "active" : ""}`} onClick={() => setAvatar(img)}>
-                      <img src={img} alt="option" />
+                    <div key={i} onClick={() => setAvatar(img)}>
+                      <img 
+                        src={img} 
+                        alt="option" 
+                        style={{
+                          width: '60px', 
+                          height: '60px', 
+                          objectFit: 'cover', 
+                          borderRadius: '50%', 
+                          cursor: 'pointer',
+                          border: avatar === img ? '3px solid #4f46e5' : '3px solid transparent'
+                        }} 
+                      />
                     </div>
                   ))}
                 </div>
@@ -150,7 +381,7 @@ const Profile = ({ user, language }) => {
                   <div className="stats-row-final">
                     <span><strong>{t.joined}</strong> {joinDate}</span>
                     <span className="dot-separator">•</span>
-                    <span><strong>{t.totalScan}</strong> {jobHistory.length + cvHistory.length}</span>
+                    <span><strong>{t.totalScan}</strong> {scanData.length + cvData.length}</span>
                   </div>
                   <div className="action-buttons-final">
                     <button onClick={() => setIsEditing(true)} className="btn-primary-final">{t.editBtn}</button>
@@ -168,15 +399,58 @@ const Profile = ({ user, language }) => {
             <div className="profile-form-side" style={{ width: '100%' }}>
               <h2 className="figma-blue-title">{t.passBtn}</h2>
               <div className="edit-form-final" style={{ gridTemplateColumns: '1fr' }}>
-                <div className="form-group-final"><label>{t.labelOldPass}</label><input type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} /></div>
-                <div className="form-group-final"><label>{t.labelNewPass}</label><input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} /></div>
-                <div className="form-group-final"><label>{t.labelConfirmPass}</label><input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} /></div>
+                <div className="form-group-final" style={{ position: 'relative' }}>
+                   <label>{t.labelOldPass}</label>
+                   <input type={showOldPassword ? "text" : "password"} value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} style={{ width: '100%', paddingRight: '40px' }} />
+                   <button type="button" onClick={() => setShowOldPassword(!showOldPassword)} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-10%)', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '18px', color: '#666' }}>{showOldPassword ? <FiEyeOff /> : <FiEye />}</button>
+                </div>
+                <div className="form-group-final" style={{ position: 'relative' }}>
+                   <label>{t.labelNewPass}</label>
+                   <input type={showNewPassword ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} style={{ width: '100%', paddingRight: '40px' }} />
+                   <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-10%)', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '18px', color: '#666' }}>{showNewPassword ? <FiEyeOff /> : <FiEye />}</button>
+                </div>
+                <div className="form-group-final" style={{ position: 'relative' }}>
+                   <label>{t.labelConfirmPass}</label>
+                   <input type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} style={{ width: '100%', paddingRight: '40px' }} />
+                   <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-10%)', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '18px', color: '#666' }}>{showConfirmPassword ? <FiEyeOff /> : <FiEye />}</button>
+                </div>
                 <div className="action-buttons-final">
-                  <button onClick={() => {alert(t.alertSuccess); setIsChangingPassword(false)}} className="btn-primary-final">{t.btnSave}</button>
+                  <button onClick={handleUpdatePassword} className="btn-primary-final">{t.btnSave}</button>
                   <button onClick={() => setIsChangingPassword(false)} className="btn-secondary-final">{t.btnCancel}</button>
                 </div>
               </div>
             </div>
+          </section>
+        )}
+
+        {/* PERSONAL DASHBOARD STATS */}
+        {!isChangingPassword && (
+          <section className="user-stats-section" style={{ margin: '30px 0', display: 'flex', gap: '15px', flexWrap: 'wrap', justifyContent: 'center' }}>
+             <div style={{ flex: '1 1 18%', background: '#fff', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', textAlign: 'center' }}>
+               <FiLayers style={{ fontSize: '24px', color: '#4f46e5', marginBottom: '10px' }} />
+               <h3 style={{ margin: '0 0 5px 0', fontSize: '22px', color: '#333' }}>{userStats.jobTotal}</h3>
+               <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>{isID ? "Scan Lowongan" : "Job Scans"}</p>
+             </div>
+             <div style={{ flex: '1 1 18%', background: '#fff', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', textAlign: 'center' }}>
+               <FiShield style={{ fontSize: '24px', color: '#10b981', marginBottom: '10px' }} />
+               <h3 style={{ margin: '0 0 5px 0', fontSize: '22px', color: '#333' }}>{userStats.scamsAvoided}</h3>
+               <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>{isID ? "Penipuan Dihindari" : "Scams Avoided"}</p>
+             </div>
+             <div style={{ flex: '1 1 18%', background: '#fff', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', textAlign: 'center' }}>
+               <FiFilePlus style={{ fontSize: '24px', color: '#f59e0b', marginBottom: '10px' }} />
+               <h3 style={{ margin: '0 0 5px 0', fontSize: '22px', color: '#333' }}>{userStats.cvTotal}</h3>
+               <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>{isID ? "CV Dioptimasi" : "CVs Optimized"}</p>
+             </div>
+             <div style={{ flex: '1 1 18%', background: '#fff', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', textAlign: 'center' }}>
+               <FiActivity style={{ fontSize: '24px', color: '#ec4899', marginBottom: '10px' }} />
+               <h3 style={{ margin: '0 0 5px 0', fontSize: '22px', color: '#333' }}>{userStats.avgCvScore}%</h3>
+               <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>{isID ? "Skor CV Rata-rata" : "Avg CV Score"}</p>
+             </div>
+             <div style={{ flex: '1 1 18%', background: '#fff', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', textAlign: 'center' }}>
+               <FiStar style={{ fontSize: '24px', color: '#eab308', marginBottom: '10px' }} />
+               <h3 style={{ margin: '0 0 5px 0', fontSize: '22px', color: '#333' }}>{userStats.bestCvScore}%</h3>
+               <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>{isID ? "Skor CV Terbaik" : "Best CV Score"}</p>
+             </div>
           </section>
         )}
 
@@ -185,7 +459,9 @@ const Profile = ({ user, language }) => {
           <div className="history-wrapper-figma">
             {/* JOB HISTORY */}
             <section className="history-card-final">
-              <h2 className="figma-blue-title">{t.jobTitle}</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <h2 className="figma-blue-title" style={{ margin: 0 }}>{t.jobTitle}</h2>
+              </div>
               <div className="table-container-final">
                 <table className="table-final figma-style">
                   <thead>
@@ -193,23 +469,31 @@ const Profile = ({ user, language }) => {
                       <th>{t.colNo}</th>
                       <th>{t.colContent}</th>
                       <th>{t.colType}</th>
-                      <th>{t.colDate}</th>
-                      <th>{t.colResult}</th>
+                      <th onClick={() => handleJobSort('date')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          {t.colDate} {renderSortIcon(jobSortConfig, 'date')}
+                        </div>
+                      </th>
+                      <th onClick={() => handleJobSort('result')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          {t.colResult} {renderSortIcon(jobSortConfig, 'result')}
+                        </div>
+                      </th>
                       <th>{t.colAction}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {jobHistory.map((item, i) => (
-                      <tr key={i}>
-                        <td>{item.no}</td>
-                        <td className="bold-text">{item.content}</td>
-                        <td>{item.type}</td>
-                        <td>{item.date}</td>
-                        <td className={`res-col ${item.result.toLowerCase().includes('risk') || item.result.includes('Risiko') ? 'high-risk' : 'legit'}`}>{item.result}</td>
+                    {sortedScanData.map((item, i) => (
+                      <tr key={item._id || i}>
+                        <td>{i + 1}</td>
+                        <td className="bold-text">{item.scanTitle || item.source || "Text Scan"}</td>
+                        <td>{item.inputType || "Text"}</td>
+                        <td>{new Date(item.createdAt).toLocaleDateString()}</td>
+                        <td className={`res-col ${(item.analysis?.verdict?.toLowerCase().includes('risk') || item.analysis?.verdict?.includes('Risiko')) ? 'high-risk' : 'legit'}`}>{item.analysis?.verdict || "Safe"}</td>
                         <td>
                           <div className="action-flex">
-                            <button className="btn-details-blue" onClick={() => navigate('/scan')}>{t.btnDetails}</button>
-                            <button className="btn-delete-figma">{t.btnDelete}</button>
+                            <button type="button" className="btn-details-blue" onClick={() => handleViewJobDetail(item._id)}>{t.btnDetails}</button>
+                            <button type="button" className="btn-delete-figma" onClick={() => setDeleteTarget({ type: 'job', id: item._id })}>{t.btnDelete}</button>
                           </div>
                         </td>
                       </tr>
@@ -221,31 +505,45 @@ const Profile = ({ user, language }) => {
 
             {/* CV HISTORY */}
             <section className="history-card-final">
-              <h2 className="figma-blue-title">{t.cvTitle}</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <h2 className="figma-blue-title" style={{ margin: 0 }}>{t.cvTitle}</h2>
+              </div>
               <div className="table-container-final">
                 <table className="table-final figma-style">
                   <thead>
                     <tr>
                       <th>{t.colNo}</th>
                       <th>{t.colCVName}</th>
-                      <th>{t.colDate}</th>
-                      <th>{t.colScore}</th>
-                      <th>{t.colMatch}</th>
+                      <th onClick={() => handleCvSort('date')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          {t.colDate} {renderSortIcon(cvSortConfig, 'date')}
+                        </div>
+                      </th>
+                      <th onClick={() => handleCvSort('score')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          {t.colScore} {renderSortIcon(cvSortConfig, 'score')}
+                        </div>
+                      </th>
+                      <th onClick={() => handleCvSort('status')} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          {t.colMatch} {renderSortIcon(cvSortConfig, 'status')}
+                        </div>
+                      </th>
                       <th>{t.colAction}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {cvHistory.map((cv, i) => (
-                      <tr key={i}>
-                        <td>{cv.no}</td>
-                        <td className="bold-text">{cv.name}</td>
-                        <td>{cv.date}</td>
-                        <td className="score-text">{cv.score}</td>
-                        <td>{cv.status}</td>
+                    {sortedCvData.map((cv, i) => (
+                      <tr key={cv._id || i}>
+                        <td>{i + 1}</td>
+                        <td className="bold-text">{cv.cvFileName || "CV " + (i+1)}</td>
+                        <td>{new Date(cv.createdAt).toLocaleDateString()}</td>
+                        <td className="score-text">{cv.analysis?.cvMatchScore || 0}</td>
+                        <td>{cv.analysis?.matchStatus || "Unrated"}</td>
                         <td>
                           <div className="action-flex">
-                            <button className="btn-details-blue" onClick={() => navigate('/scan-cv')}>{t.btnDetails}</button>
-                            <button className="btn-delete-figma">{t.btnDelete}</button>
+                            <button type="button" className="btn-details-blue" onClick={() => handleViewCvDetail(cv._id)}>{t.btnDetails}</button>
+                            <button type="button" className="btn-delete-figma" onClick={() => setDeleteTarget({ type: 'cv', id: cv._id })}>{t.btnDelete}</button>
                           </div>
                         </td>
                       </tr>
@@ -256,6 +554,107 @@ const Profile = ({ user, language }) => {
             </section>
           </div>
         )}
+
+        {selectedCvDetail && (
+          <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+            <div className="modal-card" style={{ background: '#fff', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '600px', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
+                 <h2 style={{ margin: 0, color: '#333' }}>{isID ? "Detail Riwayat CV" : "CV History Details"}</h2>
+                 <button onClick={() => setSelectedCvDetail(null)} style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#888' }}>✖</button>
+               </div>
+               <div style={{ marginBottom: '15px', fontSize: '15px' }}>
+                 <strong style={{ color: '#4f46e5' }}>Target Job:</strong> <br/> {selectedCvDetail.jobTarget || "N/A"}
+               </div>
+               <div style={{ marginBottom: '15px', fontSize: '15px' }}>
+                 <strong style={{ color: '#4f46e5' }}>Match Score:</strong> <br/> <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#10b981' }}>{selectedCvDetail.analysis?.cvMatchScore || 0}%</span>
+               </div>
+               <div style={{ marginBottom: '15px', fontSize: '15px' }}>
+                 <strong style={{ color: '#4f46e5' }}>Match Status:</strong> <br/> <span style={{ fontWeight: 'bold' }}>{selectedCvDetail.analysis?.matchStatus || "Unrated"}</span>
+               </div>
+               <div style={{ marginBottom: '15px', fontSize: '15px' }}>
+                 <strong style={{ color: '#4f46e5' }}>Strengths:</strong>
+                 <ul style={{ paddingLeft: '20px', marginTop: '5px' }}>
+                   {(selectedCvDetail.analysis?.strengths || []).map((s, i) => <li key={i}>{s}</li>)}
+                 </ul>
+               </div>
+               <div style={{ marginBottom: '15px', fontSize: '15px' }}>
+                 <strong style={{ color: '#4f46e5' }}>Weaknesses:</strong>
+                 <ul style={{ paddingLeft: '20px', marginTop: '5px' }}>
+                   {(selectedCvDetail.analysis?.weaknesses || []).map((s, i) => <li key={i}>{s}</li>)}
+                 </ul>
+               </div>
+               
+               {selectedCvDetail.improvedCvText && (
+                 <div style={{ marginTop: '25px', display: 'flex', justifyContent: 'center' }}>
+                   <button 
+                     onClick={handleDownloadHistoryPDF}
+                     style={{
+                       display: 'flex', alignItems: 'center', gap: '8px',
+                       padding: '12px 24px', borderRadius: '8px', border: 'none', background: '#4f46e5', color: '#fff',
+                       fontWeight: 'bold', fontSize: '15px', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.2)'
+                     }}
+                   >
+                     <FiDownload /> {isID ? "Download CV PDF" : "Download PDF"}
+                   </button>
+                 </div>
+               )}
+            </div>
+          </div>
+        )}
+
+        {selectedJobDetail && (
+          <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+            <div className="modal-card" style={{ background: '#fff', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '600px', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
+                 <h2 style={{ margin: 0, color: '#333' }}>{isID ? "Detail Riwayat Job" : "Job History Details"}</h2>
+                 <button onClick={() => setSelectedJobDetail(null)} style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#888' }}>✖</button>
+               </div>
+               <div style={{ marginBottom: '15px', fontSize: '15px' }}>
+                 <strong style={{ color: '#4f46e5' }}>Content:</strong> <br/> {selectedJobDetail.scanTitle || selectedJobDetail.source || "N/A"}
+               </div>
+               <div style={{ marginBottom: '15px', fontSize: '15px' }}>
+                 <strong style={{ color: '#4f46e5' }}>Score:</strong> <br/> <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{selectedJobDetail.analysis?.score || 0}%</span>
+               </div>
+               <div style={{ marginBottom: '15px', fontSize: '15px' }}>
+                 <strong style={{ color: '#4f46e5' }}>Verdict:</strong> <br/> <span style={{ fontWeight: 'bold', color: (selectedJobDetail.analysis?.verdict?.toLowerCase().includes('risk') || selectedJobDetail.analysis?.verdict?.includes('Risiko')) ? '#ef4444' : '#10b981' }}>{selectedJobDetail.analysis?.verdict || "Safe"}</span>
+               </div>
+               <div style={{ marginBottom: '15px', fontSize: '15px' }}>
+                 <strong style={{ color: '#4f46e5' }}>Flags:</strong>
+                 <ul style={{ paddingLeft: '20px', marginTop: '5px' }}>
+                   {(selectedJobDetail.analysis?.flags || []).map((f, i) => <li key={i}>{f}</li>)}
+                 </ul>
+               </div>
+               <div style={{ marginBottom: '15px', fontSize: '15px' }}>
+                 <strong style={{ color: '#4f46e5' }}>Recommendation:</strong> <br/>
+                 <p style={{ marginTop: '5px', lineHeight: '1.5' }}>{selectedJobDetail.analysis?.recommendation || "None"}</p>
+               </div>
+            </div>
+          </div>
+        )}
+
+        {deleteTarget && (
+          <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+            <div className="modal-card" style={{ background: '#fff', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '400px', textAlign: 'center', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
+              <div style={{ marginBottom: '20px' }}>
+                <h3 style={{ margin: 0, color: '#333' }}>{isID ? "Konfirmasi Hapus" : "Confirm Deletion"}</h3>
+                <p style={{ marginTop: '10px', color: '#666' }}>{isID ? "Apakah Anda yakin ingin menghapus history ini?" : "Are you sure you want to delete this history?"}</p>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
+                <button 
+                  onClick={() => setDeleteTarget(null)} 
+                  style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #888', background: 'transparent', cursor: 'pointer', fontWeight: 'bold' }}>
+                  {isID ? "Batal" : "Cancel"}
+                </button>
+                <button 
+                  onClick={handleConfirmDelete} 
+                  style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#ef4444', color: '#fff', cursor: 'pointer', fontWeight: 'bold' }}>
+                  {isID ? "Ya, Hapus" : "Yes, Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
