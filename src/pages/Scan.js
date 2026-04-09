@@ -7,13 +7,15 @@ import {
 import { FaWhatsapp, FaTelegramPlane, FaYoutube } from 'react-icons/fa';
 import './Scan.css';
 import { aiService } from '../services/aiService';
+import { Turnstile } from '@marsidev/react-turnstile';
 
-const Scan = ({ language }) => {
+const Scan = ({ user, language }) => {
   const [input, setInput] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [showResult, setShowResult] = useState(false);
   const [resultType, setResultType] = useState("legit");
   const [loading, setLoading] = useState(false);
+  const [cfToken, setCfToken] = useState(null);
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [fileSource, setFileSource] = useState({ label: "Screenshot", icon: <FaYoutube color="#FF0000" /> });
@@ -60,11 +62,12 @@ const Scan = ({ language }) => {
       const finalSource = fileSource.label ? fileSource.label.toLowerCase() : 'other';
       if (selectedFile) {
         const formData = new FormData();
-        formData.append("image", selectedFile);
+        formData.append("file", selectedFile);
         formData.append("source", finalSource);
+        formData.append("cfToken", cfToken);
         response = await aiService.detectJob(formData, true);
       } else {
-        response = await aiService.detectJob({ content: input, source: finalSource }, false);
+        response = await aiService.detectJob({ content: input, source: finalSource, cfToken }, false);
       }
 
       if (response && response.success) {
@@ -202,7 +205,18 @@ const Scan = ({ language }) => {
             <p className="source-help-text">{t.helpText}</p>
           </div>
 
-          <button className="btn-scan-figma" onClick={handleScan} disabled={loading}>
+          {/* TURNSTILE WIDGET */}
+          {!user && (
+            <div className="turnstile-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+              <Turnstile 
+                key={language} // Force re-render if language changes to stay in sync
+                siteKey={process.env.REACT_APP_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'} 
+                onSuccess={(token) => setCfToken(token)}
+              />
+            </div>
+          )}
+
+          <button className="btn-scan-figma" onClick={handleScan} disabled={loading || (!user && !cfToken)}>
             <FiCpu className="mr-10" /> {loading ? "Scanning..." : t.btnScan}
           </button>
         </div>

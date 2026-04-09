@@ -2,7 +2,7 @@ import chatbotIcon from '../assets/chatbot.png';
 import React, { useState, useRef, useEffect } from 'react';
 import { aiService } from '../services/aiService';
 
-const Chatbot = ({ language }) => {
+const Chatbot = ({ language, user }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
@@ -32,6 +32,32 @@ const Chatbot = ({ language }) => {
   };
 
   const t = content[language || 'ID'];
+
+  // Fetch history on mount or when user changes
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (user) {
+        try {
+          const response = await aiService.getChatHistory();
+          if (response.success && response.history) {
+            // Map backend { role, content } to frontend { text, isBot }
+            const mappedHistory = response.history.map(msg => ({
+              text: msg.content,
+              isBot: msg.role === 'assistant'
+            }));
+            setChatHistory(mappedHistory);
+          }
+        } catch (error) {
+          console.error("Error fetching chat history:", error);
+        }
+      } else {
+        // Guest users always start fresh
+        setChatHistory([]);
+      }
+    };
+
+    fetchHistory();
+  }, [user]);
 
   // Scroll to bottom when chatHistory updates
   useEffect(() => {

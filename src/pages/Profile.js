@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { authService } from "../services/authService";
 import { historyService } from "../services/historyService";
 import { statsService } from "../services/statsService";
+import { paymentService } from "../services/paymentService";
 import { useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff, FiLayers, FiShield, FiFilePlus, FiActivity, FiStar, FiDownload, FiChevronUp, FiChevronDown } from 'react-icons/fi';
 import { jsPDF } from "jspdf";
@@ -113,6 +114,10 @@ const Profile = ({ user, language }) => {
      bestCvScore: 0
   });
 
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
+  const [phoneInput, setPhoneInput] = useState("");
+
   const [displayUser, setDisplayUser] = useState(user || {});
 
   useEffect(() => {
@@ -199,6 +204,48 @@ const Profile = ({ user, language }) => {
       }
     } catch (error) {
       alert(error.response?.data?.message || "Failed to update password");
+    }
+  };
+
+  const handleUpgrade = () => {
+    // ALWAYS open modal as per confirmation step requirement
+    setPhoneInput(displayUser?.phoneNumber || "");
+    setIsPhoneModalOpen(true);
+  };
+
+  const handlePhoneSubmit = async (e) => {
+    if (e) e.preventDefault();
+    
+    // BASIC VALIDATION
+    const cleanPhone = phoneInput.replace(/[\s-]/g, '');
+    
+    if (!cleanPhone) {
+        alert(isID ? "Nomor telepon tidak boleh kosong." : "Phone number cannot be empty.");
+        return;
+    }
+    
+    if (!/^\+?[0-9]+$/.test(cleanPhone)) {
+        alert(isID ? "Nomor telepon hanya boleh berisi angka (dan '+' di awal)." : "Phone number can only contain numbers (and a leading '+').");
+        return;
+    }
+    
+    if (cleanPhone.length < 10 || cleanPhone.length > 15) {
+        alert(isID ? "Nomor telepon harus antara 10 - 15 karakter." : "Phone number must be between 10 - 15 characters.");
+        return;
+    }
+
+    try {
+      setPaymentLoading(true);
+      console.log("Token being used for our internal API:", localStorage.getItem('token'));
+      const res = await paymentService.createCheckoutSession({ phoneNumber: cleanPhone });
+      if (res.success && res.checkoutUrl) {
+        window.open(res.checkoutUrl, '_blank');
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to initiate payment");
+    } finally {
+      setPaymentLoading(false);
+      setIsPhoneModalOpen(false);
     }
   };
 
@@ -387,6 +434,73 @@ const Profile = ({ user, language }) => {
                     <button onClick={() => setIsEditing(true)} className="btn-primary-final">{t.editBtn}</button>
                     <button onClick={() => setIsChangingPassword(true)} className="btn-secondary-final">{t.passBtn}</button>
                   </div>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* SECTION: MEMBERSHIP & QUOTA */}
+        {!isChangingPassword && (
+          <section className="user-card-final" style={{ marginTop: '20px', borderLeft: '6px solid #4f46e5' }}>
+            <div className="profile-form-side" style={{ width: '100%', padding: '10px 20px' }}>
+              <h2 style={{ color: '#1e293b', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <FiShield style={{ color: '#4f46e5' }} /> 
+                {isID ? "Keanggotaan & Kuota" : "Membership & Quota"}
+              </h2>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+                <div style={{ background: '#f8fafc', padding: '15px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <p style={{ margin: '0 0 5px 0', fontSize: '13px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>
+                    {isID ? "Kuota Tersisa" : "Remaining Tokens"}
+                  </p>
+                  <h3 style={{ margin: 0, fontSize: '24px', color: '#1e293b' }}>
+                    {displayUser?.scanLimit || 0} <span style={{ fontSize: '14px', color: '#94a3b8', fontWeight: 'normal' }}>Scans</span>
+                  </h3>
+                </div>
+
+                <div style={{ background: '#f8fafc', padding: '15px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <p style={{ margin: '0 0 5px 0', fontSize: '13px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>
+                    {isID ? "Status Paket" : "Current Plan"}
+                  </p>
+                  <h3 style={{ margin: '0 0 5px 0', fontSize: '20px', color: displayUser?.isPremium ? '#10b981' : '#64748b' }}>
+                    {displayUser?.isPremium ? (isID ? "Member Premium" : "Premium Member") : (isID ? "Paket Gratis" : "Free Plan")}
+                  </h3>
+                  {displayUser?.isPremium && displayUser?.premiumValidUntil && (
+                    <p style={{ margin: 0, fontSize: '12px', color: '#94a3b8' }}>
+                      {isID ? "Aktif sampai:" : "Active until:"} {new Date(displayUser.premiumValidUntil).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {(!displayUser?.isPremium || (displayUser?.premiumValidUntil && new Date(displayUser.premiumValidUntil) < new Date())) && (
+                <div style={{ marginTop: '25px', padding: '20px', background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)', borderRadius: '12px', color: '#fff', textAlign: 'center' }}>
+                  <h4 style={{ margin: '0 0 10px 0', fontSize: '18px' }}>
+                    {isID ? "Upgrade ke Premium Sekarang!" : "Upgrade to Premium Now!"}
+                  </h4>
+                  <p style={{ margin: '0 0 20px 0', fontSize: '14px', opacity: 0.9 }}>
+                    {isID 
+                      ? "Dapatkan tambahan 100 token scan dan akses penuh selama 2 bulan hanya dengan Rp 50.000." 
+                      : "Get 100 additional scan tokens and full access for 2 months for only Rp 50,000."}
+                  </p>
+                  <button 
+                    onClick={handleUpgrade}
+                    disabled={paymentLoading}
+                    style={{ 
+                      backgroundColor: '#fff', 
+                      color: '#4f46e5', 
+                      padding: '12px 30px', 
+                      borderRadius: '8px', 
+                      border: 'none', 
+                      fontWeight: 'bold', 
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                    }}
+                  >
+                    {paymentLoading ? (isID ? "Memproses..." : "Processing...") : (isID ? "Upgrade ke Premium (Rp 50rb)" : "Upgrade to Premium (50k)")}
+                  </button>
                 </div>
               )}
             </div>
@@ -651,6 +765,58 @@ const Profile = ({ user, language }) => {
                   {isID ? "Ya, Hapus" : "Yes, Delete"}
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* PHONE NUMBER CONFIRMATION MODAL */}
+        {isPhoneModalOpen && (
+          <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1100, backdropFilter: 'blur(4px)' }}>
+            <div className="modal-card" style={{ background: '#fff', padding: '35px', borderRadius: '16px', width: '90%', maxWidth: '420px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)', textAlign: 'center' }}>
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ width: '60px', height: '60px', background: '#eef2ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px' }}>
+                  <FiShield style={{ fontSize: '28px', color: '#4f46e5' }} />
+                </div>
+                <h3 style={{ margin: '0 0 10px 0', fontSize: '20px', color: '#1e293b' }}>
+                  {isID ? "Konfirmasi Nomor Telepon" : "Confirm Phone Number"}
+                </h3>
+                <p style={{ margin: 0, fontSize: '14px', color: '#64748b', lineHeight: '1.5' }}>
+                  {isID 
+                    ? "Mohon konfirmasi nomor WhatsApp Anda untuk menerima notifikasi pembayaran dan status langganan." 
+                    : "Please confirm your WhatsApp number to receive payment notifications and subscription status."}
+                </p>
+              </div>
+
+              <form onSubmit={handlePhoneSubmit}>
+                <div className="form-group-final" style={{ marginBottom: '25px', textAlign: 'left' }}>
+                  <label style={{ fontSize: '13px', fontWeight: '600', color: '#475569', marginBottom: '8px', display: 'block' }}>
+                    {isID ? "Nomor WhatsApp" : "WhatsApp Number"}
+                  </label>
+                  <input 
+                    type="text" 
+                    value={phoneInput} 
+                    onChange={(e) => setPhoneInput(e.target.value)}
+                    placeholder={isID ? "Contoh: 08123456789" : "e.g., 08123456789"}
+                    style={{ width: '100%', padding: '12px 15px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '16px', outline: 'none', transition: 'border-color 0.2s' }}
+                    autoFocus
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button 
+                    type="button"
+                    onClick={() => setIsPhoneModalOpen(false)} 
+                    style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#64748b', fontWeight: '600', cursor: 'pointer' }}>
+                    {isID ? "Batal" : "Cancel"}
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={paymentLoading}
+                    style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: '#4f46e5', color: '#fff', fontWeight: '600', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.4)' }}>
+                    {paymentLoading ? (isID ? "Memproses..." : "Processing...") : (isID ? "Lanjutkan" : "Continue")}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

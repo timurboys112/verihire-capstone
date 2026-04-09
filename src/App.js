@@ -54,7 +54,7 @@ function MainApp() {
             <Route path="/home" element={<Home user={user} language={language} />} />
             
             <Route path="/about" element={<About language={language} />} />
-            <Route path="/scan" element={<Scan language={language} />} />
+            <Route path="/scan" element={<Scan user={user} language={language} />} />
             
             <Route 
               path="/login" 
@@ -79,7 +79,7 @@ function MainApp() {
           </Routes>
         </div>
 
-        {!isAuthPage && <Chatbot language={language} />}
+        {!isAuthPage && <Chatbot language={language} user={user} />}
       </div>
   );
 }
