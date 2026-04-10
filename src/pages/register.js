@@ -18,18 +18,22 @@ function Register({ language }) {
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   
+  const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
+  
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
     if (!username || !email || !password || !confirmPassword) {
-      alert(language === "ID" ? "Isi semua field!" : "Fill all fields!");
+      setStatusMsg({ type: 'error', text: language === "ID" ? "Isi semua field!" : "Fill all fields!" });
       return;
     }
     if (password !== confirmPassword) {
-      alert(language === "ID" ? "Password tidak sama!" : "Passwords do not match!");
+      setStatusMsg({ type: 'error', text: language === "ID" ? "Password tidak sama!" : "Passwords do not match!" });
       return;
     }
+
+    setStatusMsg({ type: '', text: '' });
 
     try {
       const response = await authService.register({ 
@@ -39,13 +43,13 @@ function Register({ language }) {
       });
 
       if (response.success) {
-        alert(language === "ID" ? "Berhasil daftar!" : "Registration successful!");
-        navigate("/login");
+        setStatusMsg({ type: 'success', text: language === "ID" ? "Berhasil daftar! Silakan masuk." : "Registration successful! Please login." });
+        setTimeout(() => navigate("/login"), 2000);
       }
     } catch (error) {
       console.error("Register Error:", error);
       const apiMessage = error.response?.data?.message || (language === "ID" ? "Terjadi kesalahan pendaftaran!" : "Registration failed!");
-      alert(apiMessage);
+      setStatusMsg({ type: 'error', text: apiMessage });
     }
   };
 
@@ -58,6 +62,12 @@ function Register({ language }) {
           </div>
           
           <h2>{language === "ID" ? "Daftar Akun" : "Create Account"}</h2>
+          
+          {statusMsg.text && (
+            <div className={`auth-status-msg ${statusMsg.type}`}>
+               {statusMsg.text}
+            </div>
+          )}
           
           <form onSubmit={handleRegister}>
             <div className="auth-group">

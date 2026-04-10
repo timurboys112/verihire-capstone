@@ -2,33 +2,42 @@
    1. GLOBAL & FONTS
    ============================================================ */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Inter', sans-serif; background: #F8FAFF; color: #1E293B; overflow-x: hidden; width: 100%; }
-.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+* { margin: 0; padding: 0; box-sizing: border-box; transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease; }
+body { font-family: 'Inter', sans-serif; background: #F8FAFF; color: #1E293B; overflow-x: hidden; width: 100%; -webkit-font-smoothing: antialiased; }
+.container-verihire-final { max-width: 1280px; margin: 0 auto; padding: 0 2rem; }
 .blue-text { color: #1A66FF; }
-.badge-ui { background: #Eef2ff; color: #1a66ff; padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; display: inline-block; margin-bottom: 15px; }
+.badge-ui { background: #EEF2FF; color: #1A66FF; padding: 8px 18px; border-radius: 100px; font-weight: 700; font-size: 0.85rem; display: inline-block; margin-bottom: 20px; }
+
+h1.page-title-final { font-size: 3.5rem; font-weight: 900; color: #1E293B; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 20px; }
+h2.section-title-final { font-size: 2.5rem; font-weight: 800; color: #1E293B; letter-spacing: -1px; margin-bottom: 40px; }
 
 /* ============================================================
    2. NAVBAR FINAL (FIXED: NO BLUE LINE) 🛡️
    ============================================================ */
 .main-nav-final { 
   background: white; 
-  border-bottom: none; /* Garis bawah dihapus */
+  border-bottom: none; 
   padding: 15px 0; 
   position: sticky; 
   top: 0; 
   z-index: 1000; 
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Shadow halus sebagai pengganti garis */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+.nav-container-wrapper {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 2rem;
 }
 .nav-content-final { display: flex; justify-content: space-between; align-items: center; }
-.nav-brand-final { display: flex; align-items: center; min-width: 150px; }
-.nav-logo-img-final { height: 80px !important; width: auto; display: block; object-fit: contain; }
+.nav-brand-final { display: flex; align-items: center; }
+.nav-logo-img-final { width: auto !important; height: 35px !important; display: block; object-fit: contain; image-rendering: -webkit-optimize-contrast; }
 .nav-right-group-final { display: flex; align-items: center; gap: 30px; }
 .nav-menu-final { display: flex; list-style: none; gap: 25px; margin: 0; padding: 0; }
 .nav-menu-final a { text-decoration: none; color: #64748B; font-weight: 500; font-size: 0.95rem; transition: 0.3s; position: relative; }
 
 /* Warna menu aktif */
-.nav-menu-final li.active a { color: #1A66FF; font-weight: 600; }
+.nav-menu-final li.active a { color: #1A66FF; font-weight: 700; }
+.nav-menu-final li.active a::after { content: ""; position: absolute; bottom: -5px; left: 0; width: 100%; height: 2px; background: #1A66FF; border-radius: 10px; }
 
 /* GARIS BIRU PANJANG DIHAPUS DISINI (li.active::after dihapus) */
 
@@ -252,8 +261,50 @@ body { font-family: 'Inter', sans-serif; background: #F8FAFF; color: #1E293B; ov
 .cta-banner { background: #1A66FF; color: white; padding: 100px 0; text-align: center; width: 100%; margin-top: 50px; }
 .btn-white-pill { background: white; color: #1A66FF; border: none; padding: 16px 45px; border-radius: 100px; font-weight: bold; margin-top: 30px; cursor: pointer; }
 
+/* Character Count Unified */
+.textarea-wrapper-final { position: relative; width: 100%; }
+.char-count-final { 
+  position: absolute; 
+  bottom: 12px; 
+  right: 15px; 
+  font-size: 0.75rem; 
+  color: #94A3B8; 
+  font-weight: 600; 
+  pointer-events: none; 
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
 /* ============================================================
-   6. GLOBAL MOBILE RESPONSIVE (UPDATED V3) 📱
+   7. SHARED SCAN COMPONENT STYLES (FINAL TWINS) 🛡️
+   ============================================================ */
+.verihire-card-white { background: white !important; border-radius: 24px !important; border: 1px solid #E2E8F0 !important; padding: 40px !important; box-shadow: 0 10px 40px rgba(0,0,0,0.03) !important; margin: 0 auto 40px; max-width: 1100px; text-align: left; }
+.card-label-row { display: flex; align-items: center; gap: 10px; font-weight: 700; color: #1E293B; margin-bottom: 30px; }
+.split-box-container { display: flex !important; flex-direction: row !important; gap: 30px !important; margin-bottom: 30px; }
+.split-box-col { flex: 1; display: flex; flex-direction: column; gap: 15px; }
+
+.split-divider-v { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.v-line-divider { width: 1px; flex: 1; background: #E2E8F0; min-height: 50px; }
+.v-or-bubble { width: 40px; height: 40px; border: 1px solid #E2E8F0; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: white; color: #1A66FF; font-weight: 800; font-size: 0.8rem; }
+
+.scan-box-tab { padding: 15px; border-radius: 12px; background: #F0F5FF; border: 1px solid #D0E0FF; font-weight: 700; color: #1E293B; text-align: center; }
+.scan-box-tab.muted { background: #F8FAFF; border-color: #E2E8F0; }
+
+.verihire-dropzone { border: 2px dashed #CBD5E1 !important; border-radius: 16px; padding: 60px 20px; text-align: center; background: #FAFBFF; cursor: pointer; transition: 0.3s; position: relative; width: 100%; }
+.verihire-dropzone:hover { border-color: #1A66FF !important; background: #F0F7FF !important; }
+.verihire-dropzone.active-drag { border-color: #4f46e5 !important; background: rgba(79, 70, 229, 0.05) !important; transform: scale(1.02); }
+
+.verihire-textarea-final { width: 100%; height: 200px; border: 1px solid #E2E8F0; border-radius: 16px; padding: 20px; resize: none; outline: none; background: white; font-family: inherit; }
+
+@media (max-width: 768px) {
+  .split-box-container { flex-direction: column !important; }
+  .split-divider-v { display: none; }
+  .verihire-card-white { padding: 25px !important; }
+}
+
+/* ============================================================
+   8. GLOBAL MOBILE RESPONSIVE (UPDATED V3) 📱
    ============================================================ */
 @media (max-width: 768px) {
   /* Navbar Fix */

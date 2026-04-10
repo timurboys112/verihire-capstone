@@ -117,6 +117,34 @@
 .btn-auth-primary:hover { background: #1a306e; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(30, 58, 138, 0.3); }
 
 .auth-footer { text-align: center; margin-top: 25px; color: #64748b; font-size: 0.9rem; }
+
+.auth-status-msg {
+  padding: 12px 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  animation: fadeInStatus 0.3s ease;
+}
+
+.auth-status-msg.error {
+  background-color: #fef2f2;
+  color: #ef4444;
+  border: 1px solid #fee2e2;
+}
+
+.auth-status-msg.success {
+  background-color: #f0fdf4;
+  color: #10b981;
+  border: 1px solid #dcfce7;
+}
+
+@keyframes fadeInStatus {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .auth-footer a { color: #4f46e5; font-weight: 800; text-decoration: none; }
 
 @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }

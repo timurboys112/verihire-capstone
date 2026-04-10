@@ -119,6 +119,7 @@ const Profile = ({ user, language }) => {
   const [phoneInput, setPhoneInput] = useState("");
 
   const [displayUser, setDisplayUser] = useState(user || {});
+  const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
 
   useEffect(() => {
     if (user) setDisplayUser(user);
@@ -163,7 +164,7 @@ const Profile = ({ user, language }) => {
   // ================= HANDLERS =================
   const handleSave = async () => {
     if (avatar && avatar.length > 2000000) {
-      alert(isID ? "Ukuran gambar avatar terlalu besar! Maksimal 2MB." : "Avatar image is too large! Maximum allowed is 2MB.");
+      setStatusMsg({ type: 'error', text: isID ? "Ukuran gambar avatar terlalu besar! Maksimal 2MB." : "Avatar image is too large! Maximum allowed is 2MB." });
       return;
     }
 
@@ -184,26 +185,28 @@ const Profile = ({ user, language }) => {
         setIsEditing(false);
       }
     } catch (error) {
-      alert(error.response?.data?.message || "Update profile failed");
+      setStatusMsg({ type: 'error', text: error.response?.data?.message || "Update profile failed" });
     }
   };
 
   const handleUpdatePassword = async () => {
     if (newPassword !== confirmPassword) {
-      alert(isID ? "Password baru dan konfirmasi tidak cocok!" : "Passwords do not match");
+      setStatusMsg({ type: 'error', text: isID ? "Password baru dan konfirmasi tidak cocok!" : "Passwords do not match" });
       return;
     }
     
     try {
       const res = await authService.updatePassword({ currentPassword: oldPassword, newPassword });
       if (res.success) {
-        alert(isID ? "Password berhasil diubah. Silakan login kembali." : "Password updated successfully. Please login again.");
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        navigate('/login');
+        setStatusMsg({ type: 'success', text: isID ? "Password berhasil diubah." : "Password updated successfully." });
+        setTimeout(() => {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate('/login');
+        }, 2000);
       }
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to update password");
+      setStatusMsg({ type: 'error', text: error.response?.data?.message || "Failed to update password" });
     }
   };
 
@@ -220,17 +223,17 @@ const Profile = ({ user, language }) => {
     const cleanPhone = phoneInput.replace(/[\s-]/g, '');
     
     if (!cleanPhone) {
-        alert(isID ? "Nomor telepon tidak boleh kosong." : "Phone number cannot be empty.");
+        setStatusMsg({ type: 'error', text: isID ? "Nomor telepon tidak boleh kosong." : "Phone number cannot be empty." });
         return;
     }
     
     if (!/^\+?[0-9]+$/.test(cleanPhone)) {
-        alert(isID ? "Nomor telepon hanya boleh berisi angka (dan '+' di awal)." : "Phone number can only contain numbers (and a leading '+').");
+        setStatusMsg({ type: 'error', text: isID ? "Nomor telepon hanya boleh berisi angka (dan '+' di awal)." : "Phone number can only contain numbers (and a leading '+')." });
         return;
     }
     
     if (cleanPhone.length < 10 || cleanPhone.length > 15) {
-        alert(isID ? "Nomor telepon harus antara 10 - 15 karakter." : "Phone number must be between 10 - 15 characters.");
+        setStatusMsg({ type: 'error', text: isID ? "Nomor telepon harus antara 10 - 15 karakter." : "Phone number must be between 10 - 15 characters." });
         return;
     }
 
@@ -242,7 +245,7 @@ const Profile = ({ user, language }) => {
         window.open(res.checkoutUrl, '_blank');
       }
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to initiate payment");
+      setStatusMsg({ type: 'error', text: error.response?.data?.message || "Failed to initiate payment" });
     } finally {
       setPaymentLoading(false);
       setIsPhoneModalOpen(false);
@@ -261,7 +264,7 @@ const Profile = ({ user, language }) => {
         setCvData(prev => prev.filter(item => item._id !== deleteTarget.id));
       }
     } catch (error) {
-      alert("Delete failed");
+      setStatusMsg({ type: 'error', text: "Delete failed" });
     } finally {
       setDeleteTarget(null);
     }
@@ -274,7 +277,7 @@ const Profile = ({ user, language }) => {
         setSelectedCvDetail(res.data);
       }
     } catch (error) {
-      alert("Failed to get CV detail");
+      setStatusMsg({ type: 'error', text: "Failed to get CV detail" });
     }
   };
 
@@ -285,13 +288,13 @@ const Profile = ({ user, language }) => {
         setSelectedJobDetail(res.data);
       }
     } catch (error) {
-      alert("Failed to get Job Scan detail");
+      setStatusMsg({ type: 'error', text: "Failed to get Job Scan detail" });
     }
   };
 
   const handleDownloadHistoryPDF = () => {
     if (!selectedCvDetail || !selectedCvDetail.improvedCvText) {
-      alert(isID ? "Teks CV tidak ditemukan!" : "CV text not found for download.");
+      setStatusMsg({ type: 'error', text: isID ? "Teks CV tidak ditemukan!" : "CV text not found for download." });
       return;
     }
     
@@ -379,12 +382,17 @@ const Profile = ({ user, language }) => {
   });
 
   return (
-    <div className="profile-wrapper-final">
+    <div className="profile-wrapper-final container-verihire-final">
       <div className="container">
         
         {/* SECTION 1: PROFILE CARD */}
         {!isChangingPassword && (
           <section className="user-card-final">
+            {statusMsg.text && (
+              <div className={`auth-status-msg ${statusMsg.type}`} style={{ margin: '0 20px 20px' }}>
+                {statusMsg.text}
+              </div>
+            )}
             <div className="avatar-side-final">
               <div className="avatar-box-final">
                 {avatar ? <img src={avatar} alt="avatar" className="avatar-img" /> : <span className="avatar-letter">{avatarLetter}</span>}
@@ -474,15 +482,45 @@ const Profile = ({ user, language }) => {
                 </div>
               </div>
 
-              {(!displayUser?.isPremium || (displayUser?.premiumValidUntil && new Date(displayUser.premiumValidUntil) < new Date())) && (
+              {(displayUser?.isPremium && displayUser?.membershipExpires && new Date(displayUser.membershipExpires) > new Date()) ? (
+                // PREMIUM EXTENSION UX
+                <div style={{ marginTop: '25px', padding: '20px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderRadius: '12px', color: '#fff', textAlign: 'center' }}>
+                  <h4 style={{ margin: '0 0 10px 0', fontSize: '18px' }}>
+                    {isID ? "Perpanjang Masa Premium!" : "Extend Your Premium!"}
+                  </h4>
+                  <p style={{ margin: '0 0 20px 0', fontSize: '14px', opacity: 0.9 }}>
+                    {isID 
+                      ? `Keanggotaan Anda saat ini berakhir pada ${new Date(displayUser.membershipExpires).toLocaleDateString()}. Klik di bawah untuk memperpanjang +120 token.` 
+                      : `Your current membership ends on ${new Date(displayUser.membershipExpires).toLocaleDateString()}. Click below to extend for +120 tokens.`}
+                  </p>
+                  <button 
+                    onClick={handleUpgrade}
+                    disabled={paymentLoading}
+                    style={{ 
+                      backgroundColor: '#fff', 
+                      color: '#059669', 
+                      padding: '12px 30px', 
+                      borderRadius: '8px', 
+                      border: 'none', 
+                      fontWeight: 'bold', 
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                    }}
+                  >
+                    {paymentLoading ? (isID ? "Memproses..." : "Processing...") : (isID ? "Extend Premium (+120 Tokens)" : "Extend Premium (+120 Tokens)")}
+                  </button>
+                </div>
+              ) : (
+                // NEW UPGRADE UX
                 <div style={{ marginTop: '25px', padding: '20px', background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)', borderRadius: '12px', color: '#fff', textAlign: 'center' }}>
                   <h4 style={{ margin: '0 0 10px 0', fontSize: '18px' }}>
                     {isID ? "Upgrade ke Premium Sekarang!" : "Upgrade to Premium Now!"}
                   </h4>
                   <p style={{ margin: '0 0 20px 0', fontSize: '14px', opacity: 0.9 }}>
                     {isID 
-                      ? "Dapatkan tambahan 100 token scan dan akses penuh selama 2 bulan hanya dengan Rp 50.000." 
-                      : "Get 100 additional scan tokens and full access for 2 months for only Rp 50,000."}
+                      ? "Dapatkan tambahan 120 token scan dan akses penuh selama 2 bulan hanya dengan Rp 50.000." 
+                      : "Get 120 additional scan tokens and full access for 2 months for only Rp 50,000."}
                   </p>
                   <button 
                     onClick={handleUpgrade}
@@ -512,6 +550,11 @@ const Profile = ({ user, language }) => {
           <section className="user-card-final">
             <div className="profile-form-side" style={{ width: '100%' }}>
               <h2 className="figma-blue-title">{t.passBtn}</h2>
+              {statusMsg.text && (
+                <div className={`auth-status-msg ${statusMsg.type}`} style={{ marginBottom: '20px' }}>
+                  {statusMsg.text}
+                </div>
+              )}
               <div className="edit-form-final" style={{ gridTemplateColumns: '1fr' }}>
                 <div className="form-group-final" style={{ position: 'relative' }}>
                    <label>{t.labelOldPass}</label>

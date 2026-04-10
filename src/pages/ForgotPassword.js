@@ -11,26 +11,34 @@ import illuImg from "../assets/illustration-login.png";
 function ForgotPassword({ language }) {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
   const navigate = useNavigate();
 
   const handleReset = async (e) => {
     e.preventDefault();
     if (!email) {
-      alert(language === "ID" ? "Masukkan email anda!" : "Please enter your email!");
+      setStatusMsg({ type: 'error', text: language === "ID" ? "Masukkan email anda!" : "Please enter your email!" });
       return;
     }
 
+    setStatusMsg({ type: '', text: '' });
     setIsLoading(true);
     try {
       const res = await authService.forgotPassword({ email });
       if (res.success || res.message) {
-        alert(res.message || (language === "ID" 
-          ? "Instruksi reset password telah dikirim ke email anda." 
-          : "Reset instructions have been sent to your email."));
-        navigate("/login");
+        setStatusMsg({ 
+          type: 'success', 
+          text: res.message || (language === "ID" 
+            ? "Instruksi reset password telah dikirim ke email anda." 
+            : "Reset instructions have been sent to your email.")
+        });
+        setTimeout(() => navigate("/login"), 3000);
       }
     } catch (error) {
-      alert(error.response?.data?.message || (language === "ID" ? "Gagal mengirim email reset." : "Failed to send reset email."));
+      setStatusMsg({ 
+        type: 'error', 
+        text: error.response?.data?.message || (language === "ID" ? "Gagal mengirim email reset." : "Failed to send reset email.")
+      });
     } finally {
       setIsLoading(false);
     }
@@ -45,6 +53,13 @@ function ForgotPassword({ language }) {
           </div>
           
           <h2>{language === "ID" ? "Lupa Password?" : "Forgot Password?"}</h2>
+          
+          {statusMsg.text && (
+            <div className={`auth-status-msg ${statusMsg.type}`}>
+               {statusMsg.text}
+            </div>
+          )}
+
           <p style={{ color: "#64748b", marginBottom: "30px", fontSize: "0.9rem" }}>
             {language === "ID" 
               ? "Jangan khawatir! Masukkan email anda di bawah untuk menerima instruksi reset." 

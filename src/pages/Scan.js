@@ -2,24 +2,14 @@ import React, { useState } from 'react';
 import { 
   FiUploadCloud, FiFileText, FiLink, FiCpu, FiSearch, 
   FiCheckCircle, FiShield, FiChevronDown, FiInstagram, 
-  FiFacebook, FiLinkedin, FiMoreHorizontal 
+  FiFacebook, FiLinkedin, FiMoreHorizontal, FiTrash2, FiAlertCircle 
 } from 'react-icons/fi';
-import { FaWhatsapp, FaTelegramPlane, FaYoutube } from 'react-icons/fa';
+import { FaWhatsapp, FaTelegramPlane } from 'react-icons/fa';
 import './Scan.css';
 import { aiService } from '../services/aiService';
 import { Turnstile } from '@marsidev/react-turnstile';
 
 const Scan = ({ user, language }) => {
-  const [input, setInput] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [showResult, setShowResult] = useState(false);
-  const [resultType, setResultType] = useState("legit");
-  const [loading, setLoading] = useState(false);
-  const [cfToken, setCfToken] = useState(null);
-  
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [fileSource, setFileSource] = useState({ label: "Screenshot", icon: <FaYoutube color="#FF0000" /> });
-
   const isID = language === 'ID';
 
   const t = {
@@ -35,31 +25,126 @@ const Scan = ({ user, language }) => {
     supported: "Supported: PDF, DOCX, JPG, PNG (Max 5MB)",
     placeholder: isID ? "Tempel deskripsi lowongan di sini..." : "Paste your job description here...",
     btnScan: isID ? "Scan Sekarang" : "Scan Now",
-    sourceLabel: isID ? "File Source (optional)" : "File Source (optional)",
+    sourceLabel: isID ? "File Source" : "File Source",
     helpText: isID ? "Membantu meningkatkan akurasi deteksi" : "Helps improve detection accuracy",
     exampleTitle: isID ? "Coba Contoh Ini" : "Try These Examples",
-    analyzeTitle: isID ? "Apa Yang Kami Analisis" : "What We Analyze"
+    analyzeTitle: isID ? "Apa Yang Kami Analisis" : "What We Analyze",
+    scanInstruction: isID 
+      ? "Scan yang terproses oleh AI akan memotong kuota. Pastikan file yang diunggah sudah benar agar kuota tidak terbuang percuma." 
+      : "Scans processed by AI will consume your quota. Please double-check your file before uploading to avoid wasting scans."
   };
 
+  const [input, setInput] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [showResult, setShowResult] = useState(false);
+  const [resultType, setResultType] = useState("legit");
+  const [loading, setLoading] = useState(false);
+  const [cfToken, setCfToken] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [scanError, setScanError] = useState("");
+  
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [fileSource, setFileSource] = useState({ 
+    label: isID ? "-- Pilih salah satu --" : "-- Choose one --", 
+    value: "", 
+    icon: <FiLink /> 
+  });
+
   const sources = [
-    { label: "Screenshot", icon: <FaYoutube color="#FF0000" /> },
-    { label: "WhatsApp", icon: <FaWhatsapp color="#25D366" /> },
-    { label: "Telegram", icon: <FaTelegramPlane color="#0088cc" /> },
-    { label: "Instagram", icon: <FiInstagram color="#E4405F" /> },
-    { label: "Facebook", icon: <FiFacebook color="#1877F2" /> },
-    { label: "LinkedIn", icon: <FiLinkedin color="#0A66C2" /> },
-    { label: "Other", icon: <FiMoreHorizontal color="#64748B" /> },
+    { label: "WhatsApp", value: "whatsapp", icon: <FaWhatsapp color="#25D366" /> },
+    { label: "Telegram", value: "telegram", icon: <FaTelegramPlane color="#0088cc" /> },
+    { label: "Instagram", value: "instagram", icon: <FiInstagram color="#E4405F" /> },
+    { label: "Facebook", value: "facebook", icon: <FiFacebook color="#1877F2" /> },
+    { label: "LinkedIn", value: "linkedin", icon: <FiLinkedin color="#0A66C2" /> },
+    { label: "Other", value: "other", icon: <FiMoreHorizontal color="#64748B" /> },
   ];
+
+  const validateFile = (file) => {
+    if (!file) return false;
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const allowedTypes = [
+      'application/pdf', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'image/jpeg', 
+      'image/png', 
+      'image/jpg'
+    ];
+
+    if (file.size > maxSize) {
+      setScanError(isID ? "File terlalu besar! Maksimal 5MB." : "File too large! Maximum 5MB.");
+      return false;
+    }
+    if (!allowedTypes.includes(file.type)) {
+      setScanError(isID ? "Format tidak didukung! Gunakan PDF, DOCX, JPG, atau PNG." : "Unsupported format! Use PDF, DOCX, JPG, or PNG.");
+      return false;
+    }
+    setScanError("");
+    return true;
+  };
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (validateFile(file)) {
+        setSelectedFile(file);
+      }
+    }
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (validateFile(file)) {
+        setSelectedFile(file);
+      }
+    }
+  };
+
+  const removeFile = (e) => {
+    e.stopPropagation();
+    setSelectedFile(null);
+    setScanError("");
+    // Reset input value to allow re-selecting same file
+    const input = document.getElementById("fileInput");
+    if (input) input.value = "";
+  };
 
   const handleScan = async () => {
     if (!input && !selectedFile) {
-      alert(isID ? "Masukkan teks atau upload file dulu!" : "Please provide text or upload a file first!");
+      setScanError(isID ? "Masukkan teks atau upload file dulu!" : "Please provide text or upload a file first!");
       return;
     }
+    
+    // Check quota if user logged in
+    if (user && user.scanLimit <= 0) {
+      setScanError(isID ? "Kuota scan Anda habis. Silakan upgrade ke Premium." : "Scan quota exhausted. Please upgrade to Premium.");
+      return;
+    }
+
+    // Security check for guests
+    if (!user && !cfToken) {
+      setScanError(isID ? "Verifikasi keamanan diperlukan (Turnstile)." : "Security verification required (Turnstile).");
+      return;
+    }
+
     setLoading(true);
+    setScanError("");
     try {
       let response;
-      const finalSource = fileSource.label ? fileSource.label.toLowerCase() : 'other';
+      const finalSource = fileSource.value || 'other';
       if (selectedFile) {
         const formData = new FormData();
         formData.append("file", selectedFile);
@@ -84,7 +169,7 @@ const Scan = ({ user, language }) => {
     } catch (error) {
       console.error(error);
       const errMsg = error.response?.data?.message || (isID ? "Gagal melakukan scan. Coba lagi." : "Failed to scan. Please try again.");
-      alert(errMsg);
+      setScanError(errMsg);
     } finally {
       setLoading(false);
     }
@@ -97,7 +182,7 @@ const Scan = ({ user, language }) => {
 
   return (
     <div className="scan-page-wrapper">
-      <div className="container-figma">
+      <div className="container-verihire-final">
 
         {/* ================= MODAL RESULT (FIGMA SYNC) ================= */}
         {showResult && (
@@ -149,43 +234,63 @@ const Scan = ({ user, language }) => {
 
         {/* HERO */}
         <header className="scan-hero">
-          <div className="scan-badge"><FiSearch className="mr-5" /> {t.badge}</div>
-          <h1 className="figma-title">{t.title}</h1>
+          <div className="badge-ui"><FiSearch className="mr-5" /> {t.badge}</div>
+          <h1 className="page-title-final">{t.title}</h1>
           <p className="figma-subtitle">{t.subtitle}</p>
         </header>
 
         {/* SCANNER CARD */}
-        <div className="main-white-card">
-          <div className="card-label-top"><FiFileText className="blue-icon" /> {t.cardLabel}</div>
-          <div className="split-layout">
-            <div className="input-column">
-              <div className="tab-header-figma active">
-                <div className="tab-icon-box"><FiFileText /></div>
-                <div className="tab-text"><strong>{t.tabUploadTitle}</strong><small>{t.supported}</small></div>
-              </div>
-              <div className="figma-dropzone" onClick={() => document.getElementById("fileInput").click()}>
-                <input id="fileInput" type="file" hidden onChange={(e) => setSelectedFile(e.target.files[0])} />
-                <FiUploadCloud className="cloud-svg" />
-                <p>{t.dropzoneTxt} or <span>{t.browse}</span></p>
-                {selectedFile && <div className="selected-tag">📄 {selectedFile.name}</div>}
+        <div className="verihire-card-white">
+          <div className="card-label-row"><FiFileText className="blue-icon" /> {t.cardLabel}</div>
+          <div className="split-box-container">
+            <div className="split-box-col">
+              <div className="scan-box-tab">{t.tabUploadTitle}</div>
+               <div 
+                className={`verihire-dropzone ${dragActive ? 'active-drag' : ''}`} 
+                onClick={() => document.getElementById("fileInput").click()}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
+                <input id="fileInput" type="file" hidden onChange={handleFileChange} />
+                <FiUploadCloud className="cv-cloud-icon" />
+                <p>{isID ? "Seret & lepas file di sini atau klik untuk memilih file (PDF/DOCX, Max 5MB)" : "Drag & drop file here or click to select file (PDF/DOCX, Max 5MB)"}</p>
+                {selectedFile && (
+                  <div className="selected-tag">
+                    📄 {selectedFile.name.length > 20 ? selectedFile.name.substring(0, 17) + '...' : selectedFile.name}
+                    <button className="btn-remove-file" onClick={removeFile}>
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
-            <div className="divider-v"><div className="or-bubble">OR</div></div>
-            <div className="input-column">
-              <div className="tab-header-figma muted">
-                <div className="tab-icon-box gray"><FiLink /></div>
-                <div className="tab-text"><strong>{t.tabPasteTitle}</strong><small>{t.tabPasteSub}</small></div>
-              </div>
-              <div className="textarea-container">
-                <textarea placeholder={t.placeholder} value={input} onChange={(e) => setInput(e.target.value)} />
-                <div className="char-count-figma">{input.length} characters</div>
+            
+            <div className="split-divider-v">
+              <div className="v-line-divider"></div>
+              <div className="v-or-bubble">OR</div>
+              <div className="v-line-divider"></div>
+            </div>
+
+            <div className="split-box-col">
+              <div className="scan-box-tab muted">{t.tabPasteTitle}</div>
+              <div className="textarea-wrapper-final">
+                <textarea 
+                  className="verihire-textarea-final" 
+                  placeholder={t.placeholder} 
+                  value={input} 
+                  onChange={(e) => setInput(e.target.value)} 
+                  maxLength={10000}
+                />
+                <div className="char-count-final">{input.length.toLocaleString()} / 10,000</div>
               </div>
             </div>
           </div>
 
           {/* CUSTOM DROPDOWN SOURCE */}
           <div className="source-selection-container">
-            <div className="source-header-label"><FiLink className="blue-icon" /> <span>{t.sourceLabel}</span> <FiChevronDown /></div>
+            <div className="source-header-label"><FiLink className="blue-icon" /> <span>{t.sourceLabel}</span></div>
             <div className="custom-dropdown-figma">
               <div className="dropdown-selected" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
                 <div className="option-content">{fileSource.icon} <span>{fileSource.label}</span></div>
@@ -196,7 +301,7 @@ const Scan = ({ user, language }) => {
                   {sources.map((src, idx) => (
                     <div key={idx} className="dropdown-item" onClick={() => { setFileSource(src); setIsDropdownOpen(false); }}>
                       <div className="option-content">{src.icon} <span>{src.label}</span></div>
-                      {fileSource.label === src.label && <FiCheckCircle className="check-icon" />}
+                      {fileSource.value === src.value && src.value !== "" && <FiCheckCircle className="check-icon" />}
                     </div>
                   ))}
                 </div>
@@ -208,17 +313,43 @@ const Scan = ({ user, language }) => {
           {/* TURNSTILE WIDGET */}
           {!user && (
             <div className="turnstile-container" style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+              {console.info("Turnstile Widget Initialized")}
               <Turnstile 
                 key={language} // Force re-render if language changes to stay in sync
                 siteKey={process.env.REACT_APP_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'} 
                 onSuccess={(token) => setCfToken(token)}
+                onError={(err) => console.error("Turnstile Debug: Widget Error:", err)}
+                onExpired={() => {
+                  console.info("Turnstile Debug: Token Expired, resetting state.");
+                  setCfToken(null);
+                }}
               />
             </div>
           )}
 
-          <button className="btn-scan-figma" onClick={handleScan} disabled={loading || (!user && !cfToken)}>
-            <FiCpu className="mr-10" /> {loading ? "Scanning..." : t.btnScan}
+          {scanError && (
+            <div className="scan-error-msg">
+              <FiAlertCircle /> {scanError}
+            </div>
+          )}
+
+          <button 
+            className="btn-scan-figma" 
+            onClick={handleScan} 
+            disabled={loading || (!user && !cfToken) || (user && user.scanLimit <= 0) || !fileSource.value}
+          >
+            <FiCpu className="mr-10" /> {loading ? (isID ? "Sedang Memproses..." : "Scanning...") : t.btnScan}
           </button>
+          
+          <p style={{ 
+            fontSize: '12px', 
+            color: '#64748B', 
+            textAlign: 'center', 
+            marginTop: '15px',
+            fontStyle: 'italic'
+          }}>
+            {t.scanInstruction}
+          </p>
         </div>
 
         {/* 3 SMALL FEATURE CARDS */}
@@ -239,7 +370,7 @@ const Scan = ({ user, language }) => {
 
         {/* TRY THESE EXAMPLES */}
         <div className="examples-section">
-          <h2 className="section-title-figma">{t.exampleTitle}</h2>
+          <h2 className="section-title-final">{t.exampleTitle}</h2>
           <div className="examples-grid-figma">
             <div className="ex-card-figma">
               <div className="ex-head"><strong>High Risk Example</strong> <span className="badge-red">High Risk</span></div>

@@ -83,8 +83,8 @@ const Home = ({ language, user }) => { // ✅ Terima prop user
   return (
     <div className="home-wrapper">
       <section className="hero-v3">
-        <div className="container">
-          <h1 className="hero-title-v3">
+        <div className="container-verihire-final">
+          <h1 className="page-title-final">
             {t.title1} <span className="blue-text">{t.title2}</span>
           </h1>
           <h3 className="hero-subtitle-v3">{t.subtitle}</h3>
@@ -114,8 +114,8 @@ const Home = ({ language, user }) => { // ✅ Terima prop user
       </section>
 
       <section className="why-us-v3">
-        <div className="container">
-          <h2 className="section-title-v3">{t.whyTitle}</h2>
+        <div className="container-verihire-final">
+          <h2 className="section-title-final">{t.whyTitle}</h2>
           <p className="section-subtitle-v3">{t.whyDesc}</p>
           
           <div className="features-grid-v3">
@@ -131,8 +131,8 @@ const Home = ({ language, user }) => { // ✅ Terima prop user
       </section>
 
       <section className="cta-section-v3">
-        <div className="container">
-          <h2>Ready to Protect Your Career?</h2>
+        <div className="container-verihire-final">
+          <h2 className="section-title-final" style={{ color: 'white' }}>Ready to Protect Your Career?</h2>
           <p>Join thousands of job seekers who trust VeriHire to keep them safe from scams</p>
           <button className="btn-white-pill-v3" onClick={() => navigate('/scan')}>
             Start Scanning Now 

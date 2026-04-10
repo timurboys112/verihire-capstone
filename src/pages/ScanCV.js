@@ -3,25 +3,27 @@ import { jsPDF } from "jspdf";
 import { aiService } from "../services/aiService";
 import { 
   FiUploadCloud, FiFileText, FiCheckCircle, FiCpu, 
-  FiShield, FiSearch, FiX, FiCheck, FiInfo, FiBriefcase 
+  FiShield, FiSearch, FiX, FiCheck, FiInfo, FiBriefcase, FiTrash2, FiAlertCircle 
 } from 'react-icons/fi';
 import './scanCV.css';
 
 function ScanCV({ language, user }) {
+  const isID = language === 'ID';
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [pastedText, setPastedText] = useState("");
   const [targetJob, setTargetJob] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [dynamicData, setDynamicData] = useState(null);
-  
-  const isID = language === 'ID';
+  const [dragActive, setDragActive] = useState(false);
+  const [scanError, setScanError] = useState("");
 
   const t = {
-    badge: isID ? "Halaman Scan CV" : "Scan Page CV",
+    badge: isID ? "Scanner Verifikasi CV" : "CV Verification Scanner",
     title: isID ? "Scan CV Anda" : "Scan Your CV",
     subtitle: isID ? "Unggah CV Anda untuk meningkatkan peluang dalam lamaran kerja" : "Upload your CV to improve your chances in job applications",
-    cardLabel: isID ? "Unggah CV" : "CV Upload",
+    cardLabel: isID ? "Unggah CV" : "CV Document",
     tabUpload: isID ? "Unggah Dokumen" : "Upload Document",
     tabPaste: isID ? "Tempel Teks" : "Paste Text",
     btnScan: isID ? "Scan CV Sekarang" : "Scan Your CV Now",
@@ -33,15 +35,87 @@ function ScanCV({ language, user }) {
     mAdvice: isID ? "Saran Perbaikan" : "Improvement Advice",
     mRephrase: isID ? "Saran Kalimat" : "Rephrase Suggestions",
     mJobRec: isID ? "Rekomendasi Pekerjaan" : "Job Recommendations",
-    howItWorks: isID ? "Cara Kerja" : "How It Works"
+    howItWorks: isID ? "Cara Kerja" : "How It Works",
+    scanInstruction: isID 
+      ? "Scan yang terproses oleh AI akan memotong kuota. Pastikan file yang diunggah sudah benar agar kuota tidak terbuang percuma." 
+      : "Scans processed by AI will consume your quota. Please double-check your file before uploading to avoid wasting scans."
+  };
+
+  const validateFile = (file) => {
+    if (!file) return false;
+    const maxSize = 5 * 1024 * 1024;
+    const allowedTypes = [
+      'application/pdf', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'image/jpeg', 
+      'image/png', 
+      'image/jpg'
+    ];
+
+    if (file.size > maxSize) {
+      setScanError(isID ? "File terlalu besar! Maksimal 5MB." : "File too large! Maximum 5MB.");
+      return false;
+    }
+    if (!allowedTypes.includes(file.type)) {
+      setScanError(isID ? "Format tidak didukung! Gunakan PDF, DOCX, JPG, atau PNG." : "Unsupported format! Use PDF, DOCX, JPG, or PNG.");
+      return false;
+    }
+    setScanError("");
+    return true;
+  };
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (validateFile(file)) {
+        setSelectedFile(file);
+      }
+    }
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (validateFile(file)) {
+        setSelectedFile(file);
+      }
+    }
+  };
+
+  const removeFile = (e) => {
+    e.stopPropagation();
+    setSelectedFile(null);
+    setScanError("");
+    const input = document.getElementById("f-input");
+    if (input) input.value = "";
   };
 
   const handleScan = async () => {
     if (!selectedFile) {
-      alert(isID ? "Tolong upload file CV Anda!" : "Please upload your CV file!");
+      setScanError(isID ? "Tolong upload file CV Anda!" : "Please upload your CV file!");
       return;
     }
+
+    if (user && user.scanLimit <= 0) {
+      setScanError(isID ? "Kuota scan CV Anda habis. Silakan upgrade ke Premium." : "CV scan quota exhausted. Please upgrade to Premium.");
+      return;
+    }
+
     setLoading(true);
+    setScanError("");
 
     try {
       const formData = new FormData();
@@ -72,7 +146,7 @@ function ScanCV({ language, user }) {
       }
     } catch (error) {
        console.error("Upload error", error);
-       alert(error.response?.data?.message || "Scan failed.");
+       setScanError(error.response?.data?.message || "Scan failed.");
     } finally {
        setLoading(false);
     }
@@ -80,7 +154,7 @@ function ScanCV({ language, user }) {
 
   const handleDownloadPDF = () => {
     if (!dynamicData || !dynamicData.improvedCvText) {
-      alert("Teks CV tidak ditemukan untuk diunduh.");
+      setScanError(isID ? "Teks CV tidak ditemukan untuk diunduh." : "CV text not found for download.");
       return;
     }
     
@@ -109,7 +183,7 @@ function ScanCV({ language, user }) {
 
   return (
     <div className="scan-cv-wrapper-final">
-      <div className="container-cv-figma">
+      <div className="container-verihire-final">
 
         {/* MODAL RESULT (RESPONSIVE FIX) */}
         {showModal && dynamicData && (
@@ -187,34 +261,81 @@ function ScanCV({ language, user }) {
         
         {/* HERO */}
         <div className="cv-hero">
-          <div className="cv-badge-top"><FiSearch className="mr-5" /> {t.badge}</div>
-          <h1 className="cv-title-main">{t.title}</h1>
+          <div className="badge-ui"><FiSearch className="mr-5" /> {t.badge}</div>
+          <h1 className="page-title-final">{t.title}</h1>
           <p className="cv-sub-main">{t.subtitle}</p>
         </div>
 
         {/* MAIN CARD */}
-        <div className="cv-card-white">
-          <div className="cv-card-label"><FiFileText className="blue-icon" /> {t.cardLabel}</div>
-          <div className="cv-split-box">
-            <div className="cv-input-col">
-              <div className="cv-tab active">{t.tabUpload}</div>
-              <div className="cv-dropzone" onClick={() => document.getElementById('f-input').click()}>
-                <input type="file" id="f-input" hidden onChange={(e) => setSelectedFile(e.target.files[0])} />
+        <div className="verihire-card-white">
+          <div className="card-label-row"><FiFileText className="blue-icon" /> {t.cardLabel}</div>
+          <div className="split-box-container">
+            <div className="split-box-col">
+              <div className="scan-box-tab">{t.tabUpload}</div>
+               <div 
+                className={`verihire-dropzone ${dragActive ? 'active-drag' : ''}`}
+                onClick={() => document.getElementById('f-input').click()}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
+                <input type="file" id="f-input" hidden onChange={handleFileChange} />
                 <FiUploadCloud className="cv-cloud-icon" />
-                <p>{isID ? "Tarik file" : "Drag file"} or <span>Browse</span></p>
-                {selectedFile && <div className="cv-file-tag">✅ {selectedFile.name}</div>}
+                <p>{isID ? "Seret & lepas file di sini atau klik untuk memilih file (PDF/DOCX, Max 5MB)" : "Drag & drop file here or click to select file (PDF/DOCX, Max 5MB)"}</p>
+                {selectedFile && (
+                  <div className="cv-file-tag">
+                    ✅ {selectedFile.name.length > 20 ? selectedFile.name.substring(0, 17) + '...' : selectedFile.name}
+                    <button className="cv-remove-btn" onClick={removeFile}>
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
-            <div className="cv-divider-v"><div className="v-line"></div><div className="v-or">OR</div><div className="v-line"></div></div>
-            <div className="cv-input-col">
-              <div className="cv-tab gray">{t.tabPaste}</div>
-              <textarea className="cv-textarea" value={pastedText} onChange={(e) => setPastedText(e.target.value)} placeholder="..." />
+            <div className="split-divider-v">
+              <div className="v-line-divider"></div>
+              <div className="v-or-bubble">OR</div>
+              <div className="v-line-divider"></div>
+            </div>
+            <div className="split-box-col">
+              <div className="scan-box-tab muted">{t.tabPaste}</div>
+              <div className="textarea-wrapper-final">
+                <textarea 
+                  className="verihire-textarea-final" 
+                  value={pastedText} 
+                  onChange={(e) => setPastedText(e.target.value)} 
+                  placeholder={isID ? "Tempel teks CV Anda di sini..." : "Paste your CV text here..."} 
+                  maxLength={10000}
+                />
+                <div className="char-count-final">{pastedText.length.toLocaleString()} / 10,000</div>
+              </div>
             </div>
           </div>
           <input type="text" className="cv-target-input" placeholder={t.targetPlaceholder} value={targetJob} onChange={(e) => setTargetJob(e.target.value)} />
-          <button className="cv-btn-scan" onClick={handleScan} disabled={loading}>
+          {scanError && (
+            <div className="cv-error-msg">
+              <FiAlertCircle /> {scanError}
+            </div>
+          )}
+          <button 
+            className="cv-btn-scan" 
+            onClick={handleScan} 
+            disabled={loading || (user && user.scanLimit <= 0) || !!scanError}
+            style={{ opacity: (user && user.scanLimit <= 0) ? 0.6 : 1 }}
+          >
             <FiCpu className="mr-10" /> {loading ? "Analyzing..." : t.btnScan}
           </button>
+          
+          <p style={{ 
+            fontSize: '12px', 
+            color: '#64748B', 
+            textAlign: 'center', 
+            marginTop: '15px',
+            fontStyle: 'italic'
+          }}>
+            {t.scanInstruction}
+          </p>
         </div>
 
         {/* FEATURE CARDS */}

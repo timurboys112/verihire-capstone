@@ -136,6 +136,57 @@
   background: #F0F7FF; 
 }
 
+.figma-dropzone.active-drag {
+  border-color: #4f46e5;
+  background: rgba(79, 70, 229, 0.05);
+  transform: scale(1.02);
+}
+
+.selected-tag {
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 15px;
+  background: #f1f5f9;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.btn-remove-file {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  font-size: 1.2rem;
+  transition: 0.2s;
+}
+
+.btn-remove-file:hover {
+  color: #b91c1c;
+  transform: scale(1.1);
+}
+
+.scan-error-msg {
+  background: #fef2f2;
+  color: #991b1b;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  border-left: 4px solid #ef4444;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .cloud-svg { 
   font-size: 3.5rem; 
   color: #1A66FF; 

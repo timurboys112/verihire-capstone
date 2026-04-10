@@ -15,6 +15,7 @@ function Login({ setUser, language }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
   const navigate = useNavigate();
 
   const text = content[language].login;
@@ -22,9 +23,11 @@ function Login({ setUser, language }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!email || !password) {
-      alert(language === "ID" ? "Isi semua field!" : "Fill all fields!");
+      setStatusMsg({ type: 'error', text: language === "ID" ? "Isi semua field!" : "Fill all fields!" });
       return;
     }
+
+    setStatusMsg({ type: '', text: '' }); // Clear any previous messages
 
     try {
       const response = await authService.login({ email, password });
@@ -47,8 +50,9 @@ function Login({ setUser, language }) {
       }
     } catch (error) {
       console.error("Login Error:", error);
+      // EXTRACTION: Priority on backend message
       const apiMessage = error.response?.data?.message || (language === "ID" ? "Email atau password salah!" : "Invalid email or password!");
-      alert(apiMessage);
+      setStatusMsg({ type: 'error', text: apiMessage });
     }
   };
 
@@ -61,6 +65,12 @@ function Login({ setUser, language }) {
           </div>
           
           <h2>{text.title}</h2>
+          
+          {statusMsg.text && (
+            <div className={`auth-status-msg ${statusMsg.type}`}>
+               {statusMsg.text}
+            </div>
+          )}
           
           <form onSubmit={handleLogin}>
             <div className="auth-group">

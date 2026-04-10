@@ -25,6 +25,11 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Attach App Language for localized backend responses
+    const lang = localStorage.getItem("appLang") || 'EN';
+    config.headers['Accept-Language'] = lang.toLowerCase();
+
     return config;
   },
   (error) => Promise.reject(error)
@@ -35,9 +40,13 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.href = "/login"; // Redirect to login
+      // FIX: Don't redirect/clear if we are on the login path or trying to login
+      const isLoginRequest = error.config.url.includes('/auth/login');
+      if (!isLoginRequest) {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = "/login"; // Redirect to login
+      }
     }
     return Promise.reject(error);
   }

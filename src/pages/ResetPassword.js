@@ -17,28 +17,30 @@ function ResetPassword({ language }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
     if (!password || !confirmPassword) {
-      alert(language === "ID" ? "Semua field harus diisi!" : "All fields must be filled!");
+      setStatusMsg({ type: 'error', text: language === "ID" ? "Semua field harus diisi!" : "All fields must be filled!" });
       return;
     }
 
     if (password !== confirmPassword) {
-      alert(language === "ID" ? "Password dan konfirmasi password tidak valid/cocok!" : "Passwords do not match!");
+      setStatusMsg({ type: 'error', text: language === "ID" ? "Password dan konfirmasi password tidak valid/cocok!" : "Passwords do not match!" });
       return;
     }
 
+    setStatusMsg({ type: '', text: '' });
     setIsLoading(true);
     try {
       const res = await authService.resetPassword(token, { password });
       if (res.success || res.message) {
-        alert(res.message || (language === "ID" ? "Password berhasil direset." : "Password reset successfully."));
-        navigate("/login");
+        setStatusMsg({ type: 'success', text: res.message || (language === "ID" ? "Password berhasil direset." : "Password reset successfully.") });
+        setTimeout(() => navigate("/login"), 3000);
       }
     } catch (error) {
-      alert(error.response?.data?.message || (language === "ID" ? "Gagal mereset password." : "Failed to reset password."));
+      setStatusMsg({ type: 'error', text: error.response?.data?.message || (language === "ID" ? "Gagal mereset password." : "Failed to reset password.") });
     } finally {
       setIsLoading(false);
     }
@@ -53,6 +55,13 @@ function ResetPassword({ language }) {
           </div>
           
           <h2>{language === "ID" ? "Reset Password" : "Reset Password"}</h2>
+          
+          {statusMsg.text && (
+            <div className={`auth-status-msg ${statusMsg.type}`}>
+               {statusMsg.text}
+            </div>
+          )}
+
           <p style={{ color: "#64748b", marginBottom: "30px", fontSize: "0.9rem" }}>
             {language === "ID" 
               ? "Silakan masukkan password baru Anda." 

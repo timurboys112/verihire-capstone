@@ -77,12 +77,12 @@ const About = ({ language }) => {
 
   return (
     <div className="about-page">
-      <div className="about-container">
+      <div className="container-verihire-final">
 
         {/* HERO */}
         <span className="badge-ui">{t.badge}</span>
 
-        <h1 className="hero-title">
+        <h1 className="page-title-final">
           {t.title} <span className="blue-text">{t.fraud}</span>
         </h1>
 
@@ -100,7 +100,7 @@ const About = ({ language }) => {
 
         {/* FEATURES */}
         <div className="features-section">
-          <h2 className="features-title">{t.featuresTitle}</h2>
+          <h2 className="section-title-final">{t.featuresTitle}</h2>
 
           <div className="features-grid">
             {t.features.map((item, i) => (
@@ -134,7 +134,7 @@ const About = ({ language }) => {
 
         {/* WHAT WE DETECT */}
         <div className="detect-section">
-          <h2 className="detect-title">{t.detectTitle}</h2>
+          <h2 className="section-title-final">{t.detectTitle}</h2>
           <p className="detect-desc">{t.detectDesc}</p>
 
           <div className="detect-grid">
