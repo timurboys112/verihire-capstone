@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import logoImg from '../assets/logo.png'; 
 
-const Navbar = ({ user, setUser, language, setLanguage }) => {
+const Navbar = ({ user, setUser, language, setLanguage, isLoading }) => {
   const location = useLocation();
 
   const t = (language === 'EN') ? {
@@ -48,7 +48,7 @@ const Navbar = ({ user, setUser, language, setLanguage }) => {
               </li>
 
               {/* ✅ HANYA MUNCUL JIKA USER LOGIN */}
-              {user && (
+              {!isLoading && user && (
                 <li className={location.pathname === '/scan-cv' ? 'active' : ''}>
                   <Link to="/scan-cv">{t.scanCV}</Link>
                 </li>
@@ -65,7 +65,9 @@ const Navbar = ({ user, setUser, language, setLanguage }) => {
             </div>
 
             <div className="nav-auth-final">
-              {user ? (
+              {isLoading ? (
+                <div style={{ width: '80px' }}></div> // Spacer to prevent jump
+              ) : user ? (
                 <div className="auth-flex-final">
                   <Link to="/profile" className="btn-blue-final">{t.profile}</Link>
                   <button onClick={handleLogout} className="btn-red-final">{t.logout}</button>

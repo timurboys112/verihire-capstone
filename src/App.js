@@ -16,15 +16,39 @@ import ScanCV from './pages/ScanCV';
 
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
+import { authService } from './services/authService';
+
 function MainApp() {
   const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [language, setLanguage] = useState(localStorage.getItem("appLang") || 'ID');
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    const initAuth = async () => {
+      const storedToken = localStorage.getItem("token");
+      const storedUser = localStorage.getItem("user");
+
+      if (storedToken && storedUser) {
+        try {
+          // Verify token with backend
+          const userData = await authService.getMe();
+          if (userData && userData.data && userData.data.user) {
+            setUser(userData.data.user);
+            localStorage.setItem("user", JSON.stringify(userData.data.user));
+          } else {
+            throw new Error("Invalid user data");
+          }
+        } catch (error) {
+          console.error("Auth initialization failed:", error);
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          setUser(null);
+        }
+      }
+      setIsLoading(false);
+    };
+
+    initAuth();
   }, []);
 
   const handleSetLanguage = (lang) => {
@@ -46,6 +70,7 @@ function MainApp() {
           setUser={setUser}
           language={language}
           setLanguage={handleSetLanguage} 
+          isLoading={isLoading}
         />
 
         <div className="content">
@@ -67,13 +92,17 @@ function MainApp() {
             {/* ✅ PROTECTED: Profile */}
             <Route 
               path="/profile" 
-              element={user ? <Profile user={user} language={language} /> : <Navigate to="/login" />} 
+              element={
+                isLoading ? null : (user ? <Profile user={user} language={language} /> : <Navigate to="/login" />)
+              } 
             />
 
-            {/* ✅ PROTECTED: Scan CV (Pindah ke Register kalau belum login) */}
+            {/* ✅ PROTECTED: Scan CV */}
             <Route 
               path="/scan-cv" 
-              element={user ? <ScanCV language={language} /> : <Navigate to="/register" />} 
+              element={
+                isLoading ? null : (user ? <ScanCV language={language} /> : <Navigate to="/register" />)
+              } 
             />
 
           </Routes>
